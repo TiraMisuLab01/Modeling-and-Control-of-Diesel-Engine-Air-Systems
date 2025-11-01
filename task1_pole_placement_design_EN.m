@@ -1,0 +1,266 @@
+% task1_pole_placement_design_EN.m
+% This script performs all steps for Task 1:
+% 1. Defines system matrices A, B, C based on matriculation number.
+% 2. Checks system controllability.
+% 3. Determines desired closed-loop pole locations.
+% 4. Calculates state feedback gain matrix K using the Unity Rank method.
+% 5. Verifies pole placement.
+% 6. Simulates step response and initial condition response.
+
+clear; clc; close all; % Clear workspace, command window, and close all figures
+
+%% Step 1: System Matrix Definition and Controllability Check
+% --- User-specific parameters ---
+% Last four digits of the matriculation number: a, b, c, d
+a = 8;
+b = 4;
+c = 0;
+d = 1;
+
+fprintf('Using parameters: a=%d, b=%d, c=%d, d=%d\n\n', a, b, c, d);
+
+% 1. Define system matrices (A, B, C):
+% Substitute the matriculation number parameters a, b, c, d into the expressions for matrices A, B, C from the project description (Page 3, Eq. 2).
+
+% --- Matrix A Definition ---
+A = zeros(4, 4);
+A(1,1) = -8.8487 + (a - b) / 5;
+A(1,2) = -0.0399;
+A(1,3) = -5.5500 + (c * d + 5) / 10; % Using the formula you provided
+A(1,4) = 3.5846;
+
+A(2,1) = -4.5740;
+A(2,2) = 2.5010 * (d + 5) / (c + 5);
+A(2,3) = -4.3662;
+A(2,4) = -1.1183 - (a - c) / 20;
+
+A(3,1) = 3.7698;
+A(3,2) = 16.1212 - c / 5;
+A(3,3) = -18.2103 + (a + d) / (b + 4);
+A(3,4) = 4.4936;
+
+A(4,1) = -8.5645 - (a - b) / (c + d + 2);
+A(4,2) = 8.3742;
+A(4,3) = -4.4331;
+A(4,4) = -7.7181 * (c + 5) / (b + 5);
+
+% --- Matrix B Definition ---
+B = zeros(4, 2);
+B(1,1) = 0.0564 + b / (10 + c); % Using the formula you provided
+B(1,2) = 0.0319;
+
+B(2,1) = 0.0165 - (c + d - 5) / (1000 + 20 * a);
+B(2,2) = -0.02;
+
+B(3,1) = 4.4939;
+B(3,2) = 1.5985 * (a + 10) / (b + 12);
+
+B(4,1) = -1.4269;
+B(4,2) = -0.2730;
+
+% --- Matrix C Definition ---
+C = zeros(2, 4);
+C(1,1) = -3.2988;
+C(1,2) = -2.1932 + (10 * c + d) / (100 + 5 * a);
+C(1,3) = 0.0370;
+C(1,4) = -0.0109;
+
+C(2,1) = 0.2922 - (a * b) / 500;
+C(2,2) = -2.1506;
+C(2,3) = -0.0104;
+C(2,4) = 0.0163;
+
+% --- Display Matrices ---
+disp('Matrix A:');
+disp(A);
+disp('Matrix B:');
+disp(B);
+disp('Matrix C:');
+disp(C);
+
+% --- Create State-Space Model ---
+sys = ss(A, B, C, 0);
+disp('State-space model ''sys'' created successfully.');
+
+% 2. Check system controllability: Construct the controllability matrix Wc and compute its rank.
+% According to Chapter 7 (Page 21, Theorem 1), a system is controllable if and only if its controllability matrix has full rank.
+% If the system is not controllable, we cannot arbitrarily place all poles, and the task objective cannot be met.
+
+n = size(A, 1); % Number of states, n = 4 (4th-order system)
+m = size(B, 2); % Number of inputs, m = 2 (u1: VGT position, u2: EGR position)
+
+Wc = ctrb(A, B); % Compute the controllability matrix ([B, AB, A^2B, A^3B])
+rank_Wc = rank(Wc); % Compute the rank of the controllability matrix
+
+fprintf('\nRank of Controllability Matrix: %d\n', rank_Wc);
+if rank_Wc == n
+    disp('System is controllable.');
+else
+    disp('System is NOT controllable. Pole placement is not possible for all desired poles.');
+    return; % Exit script if not controllable
+end
+
+%% --- Step 2: Determine Desired Closed-Loop Pole Locations ---
+% Translate performance specifications into a region in the s-plane for the poles.
+% The formulas from Chapter 7 (Page 11) bridge the gap between time-domain performance and frequency-domain (pole location) characteristics.
+
+% Performance Specifications:
+Mp_target = 0.10; % Target overshoot < 10%
+ts_target = 5;    % Target 2% settling time < 5s
+
+% 1. Calculate minimum damping ratio (zeta_min) from overshoot
+zeta_min = -log(Mp_target) / sqrt(pi^2 + log(Mp_target)^2);  % 0.591
+fprintf('For Mp < %.1f%%, required minimum damping ratio zeta > %.3f\n', Mp_target*100, zeta_min);
+
+% 2. Calculate minimum real part of poles (sigma_min = zeta*omega_n) from settling time
+sigma_min = 4 / ts_target;  % 0.800
+fprintf('For ts < %d s, required minimum real part |Re(lambda)| > %.3f\n', ts_target, sigma_min);
+
+% 3. Select desired closed-loop poles
+% To have some overshoot, choose a pair of complex conjugate dominant poles.
+dominant_real_part = -1.5; % Satisfies |Re(lambda)| > sigma_min (1.5 > 0.8)
+dominant_imag_part = 1.5;  % Chosen to satisfy the damping ratio requirement
+
+% Verify the damping ratio and natural frequency of the dominant poles
+omega_n_dominant = sqrt(dominant_real_part^2 + dominant_imag_part^2);
+zeta_dominant = abs(dominant_real_part) / omega_n_dominant;
+fprintf('Selected dominant poles: Re(lambda) = %.1f, Im(lambda) = %.1f\n', dominant_real_part, dominant_imag_part);
+fprintf('  -> Corresponding omega_n = %.3f, zeta = %.3f\n', omega_n_dominant, zeta_dominant);
+if zeta_dominant > zeta_min
+   fprintf('  -> Damping ratio meets Mp requirement (%.3f > %.3f)\n', zeta_dominant, zeta_min);
+else
+   fprintf('  -> Damping ratio does NOT meet Mp requirement (%.3f <= %.3f), pole locations may need adjustment\n', zeta_dominant, zeta_min);
+end
+
+% Select non-dominant poles (typically 3-5 times faster than dominant poles)
+% Dominant real part is -1.5, so choose -5.0 and -6.0 as non-dominant poles.
+non_dominant_1 = -5.0;
+non_dominant_2 = -6.0;
+fprintf('Selected non-dominant poles: %.1f, %.1f (approx. 3-4 times faster than dominant poles)\n', non_dominant_1, non_dominant_2);
+
+P_desired = [dominant_real_part + dominant_imag_part*1j, ...
+             dominant_real_part - dominant_imag_part*1j, ...
+             non_dominant_1, ...
+             non_dominant_2];
+fprintf('\nFinal desired closed-loop poles P_desired:\n');
+disp(P_desired);
+
+
+%% --- Step 3: Calculate Feedback Gain Matrix K (Unity Rank Method) ---
+
+% 3.1 Select weighting vector q: Choose a non-zero m x 1 (i.e., 2 x 1) vector q such that the pair (A, Bq) is controllable.
+% The Unity Rank Method (Chapter 7, §7.4.1) simplifies the MIMO problem to an equivalent SISO problem.
+% The goal is to choose q such that the equivalent SISO system remains controllable.
+
+% Try q = [1; 1] to ensure both actuators are utilized.
+q = [1; 1]; 
+fprintf('\nTrying weighting vector q = [%d; %d]\n', q(1), q(2));
+
+% Calculate Bq
+Bq = B * q;
+
+% Check controllability of (A, Bq)
+Wc_siso = ctrb(A, Bq);
+rank_Wc_siso = rank(Wc_siso);
+
+fprintf('Rank of controllability matrix for (A, Bq): %d\n', rank_Wc_siso);
+if rank_Wc_siso == n
+    disp('(A, Bq) is controllable. Proceeding with pole placement.');
+    
+    % 3.2 Calculate equivalent single-input feedback gain k_siso
+    % Use the 'acker' function for pole placement.
+    k_siso = acker(A, Bq, P_desired);
+    
+    % 3.3 Construct the final MIMO feedback gain matrix K
+    K = q * k_siso; % K = q * k_siso; where k_siso is a row vector and q is a column vector, so K is a matrix.
+    
+fprintf('\nCalculated Feedback Gain Matrix K:\n');
+disp(K);
+    
+    % Verify that pole placement was successful by checking the eigenvalues of A-BK
+    A_cl_check = A - B * K;
+    fprintf('\nEigenvalues of A-BK (Closed-Loop Poles):\n');
+    disp(eig(A_cl_check));
+    
+else
+    disp('(A, Bq) is NOT controllable. Trying a different q vector might be necessary.');
+    % If q = [1; 1] fails, one could try q = [1; 0] or q = [0; 1].
+    % For this script, we stop if the first choice of q fails.
+    K = []; 
+end
+
+%% Step 4: Simulation and Performance Analysis
+% 4.1 Construct the closed-loop system model
+A_cl = A - B * K;
+B_cl = B; % Assume reference input r enters the system through matrix B (u = -Kx + r)
+C_cl = C;
+D_cl = zeros(size(C,1), size(B,2)); % D matrix is zero
+
+sys_cl = ss(A_cl, B_cl, C_cl, D_cl);
+fprintf('\nClosed-loop system model sys_cl created successfully.\n');
+
+% 4.2 Step Response Simulation
+fprintf('\n--- Step Response Simulation ---\n');
+figure;
+
+% We compute the response to all inputs at once and then extract them.
+T_final_step = 20; % Simulation time
+[y_all, t_all, x_all] = step(sys_cl, T_final_step);
+
+% Extract response to input 1 (r = [1; 0])
+y_step1 = y_all(:, :, 1); % Dimensions: [time, 2 outputs]
+t_step1 = t_all;
+
+% Extract response to input 2 (r = [0; 1])
+y_step2 = y_all(:, :, 2); % Dimensions: [time, 2 outputs]
+t_step2 = t_all;
+% (We don't need x_step1 and x_step2 here, so their extraction is omitted)
+
+
+% Plot step response for the first input channel (r = [1; 0])
+subplot(2,1,1);
+plot(t_step1, y_step1(:,1), 'b', t_step1, y_step1(:,2), 'r');
+title('Output Step Response (r = [1; 0])');
+xlabel('Time (s)');
+ylabel('Output');
+legend('y1', 'y2');
+grid on;
+
+% Plot step response for the second input channel (r = [0; 1])
+subplot(2,1,2);
+plot(t_step2, y_step2(:,1), 'b', t_step2, y_step2(:,2), 'r');
+title('Output Step Response (r = [0; 1])');
+xlabel('Time (s)');
+ylabel('Output');
+legend('y1', 'y2');
+grid on;
+
+% 4.3 Non-zero Initial State Response Simulation
+fprintf('\n--- Non-zero Initial State Response Simulation ---\n');
+x0 = [0.5; -0.1; 0.3; -0.8]; % Initial state specified in the project
+t_sim = 0:0.01:20; % Simulation time
+
+% Simulate using the initial() function with zero external input
+[y_ic, t_ic, x_ic] = initial(sys_cl, x0, t_sim); % sys_cl already contains A_cl = A-BK
+
+figure;
+subplot(2,1,1);
+plot(t_ic, x_ic);
+title('State Variable Response (Non-zero Initial State, Zero External Input)');
+xlabel('Time (s)');
+ylabel('State');
+legend('x1', 'x2', 'x3', 'x4');
+grid on;
+
+% 4.4 Control Signal Magnitude Monitoring
+% u = -Kx
+u_ic = -K * x_ic'; % Calculate the control signal at each time point
+subplot(2,1,2);
+plot(t_ic, u_ic);
+title('Control Signal (Non-zero Initial State, Zero External Input)');
+xlabel('Time (s)');
+ylabel('Control Input');
+legend('u1', 'u2');
+grid on;
+
+fprintf('\nTask 1 simulation complete.\n');
