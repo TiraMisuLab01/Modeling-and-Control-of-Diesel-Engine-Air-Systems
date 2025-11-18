@@ -118,8 +118,8 @@ fprintf('For ts < %d s, required minimum real part |Re(lambda)| > %.3f\n', ts_ta
 
 % 3. Select desired closed-loop poles
 % To have some overshoot, choose a pair of complex conjugate dominant poles.
-dominant_real_part = -0.4; % Satisfies |Re(lambda)| > sigma_min (0.4 > 0.2)
-dominant_imag_part = 0.4;  % Chosen to satisfy the damping ratio requirement
+dominant_real_part = -0.8; % Satisfies |Re(lambda)| > sigma_min (0.8 > 0.2)
+dominant_imag_part = 0.8;  % Chosen to satisfy the damping ratio requirement
 
 % Verify the damping ratio and natural frequency of the dominant poles
 omega_n_dominant = sqrt(dominant_real_part^2 + dominant_imag_part^2);
@@ -133,9 +133,9 @@ else
 end
 
 % Select non-dominant poles (typically 3-5 times faster than dominant poles)
-% Dominant real part is -0.4, so choose -1.2 and -2.0 as non-dominant poles.
-non_dominant_1 = -1.2;
-non_dominant_2 = -2.0;
+% Dominant real part is -1.5, so choose -5.0 and -6.0 as non-dominant poles.
+non_dominant_1 = -5.0;
+non_dominant_2 = -6.0;
 fprintf('Selected non-dominant poles: %.1f, %.1f (approx. 3-4 times faster than dominant poles)\n', non_dominant_1, non_dominant_2);
 
 P_desired = [dominant_real_part + dominant_imag_part*1j, ...
