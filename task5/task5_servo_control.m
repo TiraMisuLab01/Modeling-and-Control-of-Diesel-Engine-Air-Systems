@@ -5,8 +5,8 @@
 clear; clc; close all;
 
 %% 1. Parameter Setup (Replace with your Matriculation Number digits)
-% Example: A0162903M -> a=2, b=9, c=0, d=3
-a = 2; b = 9; c = 0; d = 3; 
+% Example: A0162903M -> a=8, b=4, c=0, d=1
+a = 8; b = 4; c = 0; d = 1; 
 
 % Define System Matrices A, B, C based on Mini-project eq(2)
 % Helper calculations
@@ -14,18 +14,20 @@ p1 = 2.5010 * (d + 5) / (c + 5);
 p2 = 0.2922 - (a * b) / 500;
 p3 = 0.0165 - (c + d - 5) / (1000 + 20 * a);
 
-A = [ a-b,                -4.5740,              -0.0399,              -5.5500 + (c+d)/10;
-     -8.8487 + b/5,       3.7698,               16.1212 - c/5,        -4.3662;
-     -18.2103 + (a+d)/(b+4), a-c,               -1.1183 - d/20,        3.5846;
-     -8.5645 - (a-b)/(c+d+2), 8.3742,           -4.4331,              -7.7181 * (c+5)/(b+5)];
+A = [-8.0487, -0.0399, -5.0500,  3.5846;
+     -4.5740,  3.0012, -4.3662, -1.5183;
+      3.7698, 16.1212, -17.0853, 4.4936;
+     -9.8978,  8.3742, -4.4331, -4.2878];
 
-B = [ 0.0564 + b/(10+c),  0.0319;
-      p3,                 4.4939;
-     -1.4269,            -0.02;
-      1.5985 * (a+10)/(b+12), -0.2730];
+B = [ 0.4564,  0.0319;
+      0.0199, -0.0200;
+      4.4939,  1.7983;
+     -1.4269, -0.2730];
 
-C = [ -3.2988, -2.1932 + (10*c+d)/(100+5*a), 0.0370, -0.0109;
-       p2,     -2.1506,                     -0.0104, 0.0163];
+C = [-3.2988, -2.1861,  0.0370, -0.0109;
+      0.2282, -2.1506, -0.0104,  0.0163];
+
+D = zeros(2, 2);
 
 D = zeros(2, 2); % Assuming D is zero matrix
 
@@ -195,7 +197,7 @@ ylabel('Inputs');
 subplot(3,1,3);
 est_error = X - X_hat;
 plot(time, vecnorm(est_error), 'k', 'LineWidth', 1.5);
-title('Norm of State Estimation Error ||x - \hat{x}||');
+title('Norm of State Estimation Error', 'Interpreter', 'none');
 grid on;
 xlabel('Time (s)');
 ylabel('Error Norm');
