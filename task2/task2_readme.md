@@ -6,21 +6,22 @@ This report addresses Task 2 of the mini-project, which transitions from the pol
 
 > 任务二要求：
 > 
-> 任务二核心在于从极点配置方法过渡到线性二次调节器（LQR）最优控制理论的应用。相较于通过直接指定闭环极点来塑造系统动态的极点配置法，LQR将控制问题转化为一个优化问题，从而提供了一种更为系统化的设计范式。其核心目标是求解一个状态反馈控制器 `u = -Kx`，该控制器能够最小化一个二次型代价函数，用以在系统性能（最小化状态误差）与控制成本（最小化能量消耗）这两个相互制约的目标之间取得最佳平衡。本任务设定在一个理想化的调节问题（Regulation Problem）场景下，即假设所有状态变量均可测量，且系统在零扰动和零设定点下运行。设计的最终目标是获得一个满足性能指标（超调<10%，稳定时间<20s）的LQR控制器，并深入分析权重矩阵`Q`和`R`对系统行为的影响。
+> 任务二放弃使用极点配置方法，转而使用线性二次调节器（LQR）最优控制。相较于通过直接指定闭环极点来塑造系统动态的极点配置法，LQR将控制问题转化为一个优化问题，从而更为系统化的进行设计。其目标是求解一个状态反馈控制器 `u = -Kx`，该控制器能够最小化一个二次型代价函数 J，从而在系统性能（最小化状态误差）与控制成本（最小化能量消耗）这两个相互制约的目标之间取得平衡。因此，本任务需要设计一个满足性能指标（的LQR控制器，并深入分析权重矩阵`Q`和`R`对系统行为的影响。
 
 ## 2. Task Solvement
 
-The LQR design process is centered around the minimization of a quadratic cost function, which, as defined in Chapter 8 (Slide 6), is given by:
+The core of LQR design lies in minimising the quadratic cost function. The quadratic cost function `J` is defined as follows:
 
-> LQR的设计过程围绕着一个二次型代价函数的最小化展开。根据课程讲义第8章（幻灯片6）的定义，该代价函数`J`的形式如下：
+> LQR的设计的核心是二次型代价函数的最小化。二次型代价函数`J`的函数如下所示：
 
 $$
 J = \frac{1}{2}\int_{0}^{\infty} (x^T Q x + u^T R u) dt
 $$
 
-Here, the matrix `Q` penalizes state deviations and `R` penalizes control effort. The optimal feedback gain `K` that minimizes `J` is found by first solving the Algebraic Riccati Equation (ARE) for a unique, positive semi-definite matrix `P` (Chapter 8, Slide 38), and then calculating `K` (Chapter 8, Slide 40):
+    In this function, matrix `Q` is used to penalise the state error, while matrix `R` penalises the scale of the control input. This project employs the Algebraic Riccati Equation (ARE) to determine the optimal feedback gain `K` that minimises `J`. 
+    Firstly, the unique symmetric positive semidefinite solution matrix `P` to the ARE is solved by Eq. (). Subsequently, the optimal gain `K` is computed by Eq. ().
 
-> 在此函数中，矩阵`Q`用于惩罚状态误差，而矩阵`R`则用于惩罚控制输入的大小。能够最小化`J`的最优反馈增益`K`，其求解过程依赖于代数黎卡提方程（ARE）。首先，需要解出ARE唯一的对称半正定解矩阵`P`（参考第8章，幻灯片38），进而通过该解计算出最优增益`K`（参考第8章，幻灯片40）：
+> 在此函数中，矩阵`Q`用于惩罚状态误差，而矩阵`R`则用于惩罚控制输入的大小。本项目使用代数黎卡提方程（ARE）来求解能够最小化`J`的最优反馈增益`K`。首先，通过式（）解出ARE唯一的对称半正定解矩阵`P`，接着通过式（）计算出最优增益`K`
 
 $$
 A^TP + PA - PBR^{-1}B^TP + Q = 0
@@ -30,13 +31,13 @@ $$
 K = R^{-1}B^TP
 $$
 
-In our MATLAB script, `task2_lqr_design_EN_1.m`, we use the `lqr(A, B, Q, R)` function, which encapsulates this entire solution process. The core of this task is to investigate the trade-off between performance and cost by adjusting `Q` and `R`. We performed three distinct designs to illustrate this trade-off.
+In our MATLAB script, `task2_lqr_design_EN_1.m`, we use the `lqr(A, B, Q, R)` function, which encapsulates this entire solution process. The core of this task is to investigate the trade-off between performance and cost by adjusting `Q` and `R`. We performed three distinct designs to illustrate this trade-off.In this project, the MATLAB function `lqr(A, B, Q, R)` is used to calculate the above-mentioned solution. Additionally, to investigate the trade-off between performance and computational cost, two sets of `Q` and `R` matrices have been set up for experimentation.
 
-> 在本次设计的MATLAB脚本`task2_lqr_design_EN_1.m`中，我们利用`lqr(A, B, Q, R)`函数来完成上述求解过程。本任务的核心在于通过调整`Q`和`R`来研究性能与成本之间的权衡关系。为此，我们进行了三组不同的设计实验。
+> 在本项目中，matlab的`lqr(A, B, Q, R)`函数被用来完成上述求解过程。同时，为了研究性能与成本之间的权衡关系，本项目设置了两组`Q`和`R`矩阵来进行实验。
 
-**Design 1 (Baseline):** We started with a common and intuitive choice for the weighting matrices: `Q = C'*C` and `R = eye(2)`. This choice penalizes the output `y` directly and applies equal cost to both control inputs. The resulting gain matrix was:
+Design 1 (Baseline): This project initially used a set of weight matrices which commonly used in engineering and intuitive: `Q = C^T*C` and `R = I` to minimise the output energy $y^Ty$, applying equal weighting to both control inputs. Subsequently, the feedback gain matrix K_1 obtained from this approach was calculated as:
 
-> **设计一 (基准方案):** 我们首先采用了一组在工程中常用且直观的权重矩阵：`Q = C'*C` 与 `R = eye(2)`。该选择的物理意义在于直接对系统的输出`y`进行惩罚，并对两个控制输入施加了同等的权重。计算得到此方案的反馈增益矩阵为：
+> **设计一 (基准方案):** 本项目首先采用了一组在工程中常用且直观的权重矩阵：`Q = C^T*C` 与 `R = eye(2)`来最小化输出的能量 $y^Ty$，并且对两个控制输入施加了同等的权重。随后，计算此方案得到的反馈增益矩阵K_1为：
 
 ```
 K1 (Q=C'C, R=I):
@@ -44,9 +45,9 @@ K1 (Q=C'C, R=I):
    -0.1431   -0.5293    0.1556    0.0443
 ```
 
-**Design 2 (Aggressive):** To achieve a faster response, we increased the state penalty and reduced the control penalty by setting `Q = 100*(C'*C)` and `R = 0.5*eye(2)`. This higher Q/R ratio resulted in a significantly larger gain matrix, indicating a more aggressive control action:
+Design 2 (Aggressive): the design increased the state penalty and reduced the control penalty to achieve faster system response, specifically setting `Q = 100*(C^T*C)` and `R = 0.5I`. Consequently, this approach exhibits a higher Q/R ratio, shorter settling time, and larger control signal amplitude. Subsequently, the feedback gain matrix K₁ derived from this design is calculated as:
 
-> **设计二 (激进方案):** 为获得更快的系统响应，我们提高了状态惩罚并降低了控制惩罚，具体设置为 `Q = 100*(C'*C)` 和 `R = 0.5*eye(2)`。这种更高的Q/R比值使得控制器增益显著增大，预示着一个更快的控制策略。
+> **设计二 (激进方案):** 为了获得更快的系统响应，我们提高了状态惩罚并降低了控制惩罚，具体来说，设置 `Q = 100*(C^T*C)` 和 `R = 0.5I`。因此，此方案具有更高的Q/R比值，更短的调节时间，更大的控制信号幅值。随后，计算此方案得到的反馈增益矩阵K_1为：
 
 ```
 K2 (Q=100*C'C, R=0.5*I):
@@ -54,24 +55,14 @@ K2 (Q=100*C'C, R=0.5*I):
   -14.5523  -34.4957    6.6388    5.7409
 ```
 
-The simulation results clearly illustrate the impact of these choices. The step response comparison shows that the aggressive design has the fastest settling time (approx. 1.1s), while the baseline design is slower but still meets the performance criteria. The quantitative metrics confirm these visual observations.
+Eventually, simulations were conducted using MATLAB to examine the impact of different weight selections on system performance during step responses. The performance indicators for two designs are presented in Table x-x. Figure x-x demonstrates that Design 1 exhibits not only a slower response but also higher overshoot which is over 10% of the setpoint. Therefore, Design 1 fails to meet requirements. Due to the controller imposes overly stringent constraints on control energy, it cannot exert sufficient control force to suppress overshoot. In contrast, Design 2 exhibits a faster settling time, rapidly bringing the system state to zero, and its performance indicators meet the requirements. However, this comes at the cost of requiring a control signal with a peak magnitude of approximately 6 units.
 
-> 仿真结果清晰地揭示了不同权重选择对系统性能的影响。阶跃响应比较显示，激进型设计（设计二）具有最快的稳定时间（约1.1秒），而基准设计（设计一）虽然响应较慢，但其性能指标同样满足设计要求。具体的性能数据进一步验证了这一观察。
+> 最后，使用matlab 进行仿真，检查阶跃响应下不同权重选择对系统性能的影响，两个设计的性能指标如表 x-x所示。图 x-x显示，设计一不仅响应较慢，而且超调量M_P超过了10%。因此设计一无法满足要求，在此设计下控制器对控制能量的限制过于严格，导致无法施加足够的控制力来抑制超调。相比之下，设计二2 具有更快的稳定时间，能最快地将系统状态调节至零点，并且性能指标满足要求。但其代价是需要一个峰值约为6个单位的控制信号。
 
-
-
-Furthermore, the analysis of the initial condition response and control effort confirms this trade-off. The aggressive controller (Design 2) drives the states to zero fastest but requires a control signal with a peak magnitude of nearly 5 units. In contrast, the baseline design (Design 1) again shows a balanced behavior with moderate control effort (peak < 0.3) and a reasonably fast response.
-
-> 此外，对初始条件响应和相应控制输入的分析进一步证实了这种性能与成本的权衡关系。激进型控制器（设计二）能最快地将系统状态调节至零点，但其代价是需要一个峰值接近5个单位的控制信号。相比之下，基准控制器（设计一）则展现了更为均衡的特性，它以一个适度的控制信号（峰值小于0.3）实现了足够快的响应速度。
-
-![Initial Condition and Control Effort Comparison](task2_control%20signal.png)
+![task2_initial condition response and control effort comparison](E:\桌面文件存放\学习资料\NUS\NUS\NUS%20Courses\ME5401%20Linear%20System\Linear-System-Mini-Project\task2\task2_initial%20condition%20response%20and%20control%20effort%20comparison.png)
 
 ## 3. Discussion and Conclusion
 
-This task effectively demonstrated the core principle of LQR design: achieving an optimal balance between system performance and control expenditure. Unlike pole placement, where the designer manually selects pole locations, LQR provides a systematic way to synthesize a controller based on high-level performance objectives encapsulated in the weighting matrices `Q` and `R`. The iterative process of selecting these matrices, simulating the response, and analyzing the results is a fundamental workflow in modern control engineering.
+Task 2 demonstrated a profound understanding of how to find the optimal balance between system performance and control costs by adjusting the Q and R settings. Increasing the Q/R ratio will result in faster dynamic response, but at the expense of higher control energy consumption; conversely, reducing this ratio will cause the system response to become more gradual, thereby saving control costs.
 
-> 本次任务有效地验证了LQR设计的核心思想：在系统性能与控制成本之间寻求最优的平衡点。与需要设计者手动指定极点位置的极点配置法不同，LQR基于封装在高层性能目标中的权重矩阵`Q`和`R`，提供了一种系统化的控制器综合方法。通过选择权重矩阵、仿真系统响应并分析结果的迭代过程，是现代控制工程中的一个基本设计流程。
-
-The key takeaway is the clear and predictable relationship between the Q/R ratio and the system's behavior. A higher Q/R ratio leads to a faster, more aggressive response at the cost of higher control energy, while a lower ratio results in a slower, more conservative response that saves energy. For this specific project, both the baseline and aggressive designs met the transient performance criteria of `ts < 20s`. However, considering the trade-off, the baseline design (`Q=C'*C`, `R=I`) is arguably the better choice as it satisfies the requirements with significantly less control effort. This task successfully fulfills all requirements and provides a solid foundation for understanding optimal control principles.
-
-> 本次设计的关键收获在于深刻理解了Q/R比值与系统行为之间清晰且可预测的关系。提高Q/R比值会带来更快的动态响应，但其代价是更高的控制能量消耗；反之，降低该比值则会使系统响应趋于平缓，从而节省控制成本。针对本项目的具体要求，基准方案与激进方案均满足了`ts < 20s`的稳定时间指标。然而，综合考量性能与成本的平衡，基准设计（`Q=C'*C`, `R=I`）无疑是更优的选择，因为它在满足性能指标的前提下，显著降低了控制器的能量消耗。本任务成功地完成了所有要求，并为理解最优控制原理提供了坚实的基础。
+> 任务2通过调整Q与R的设置，深刻的理解了如何在系统性能与控制成本之间寻求最优的平衡点。提高Q/R比值会带来更快的动态响应，但其代价是更高的控制能量消耗；反之，降低该比值则会使系统响应趋于平缓，从而节省控制成本。针对本项目的具体要求，只有设计2满足了所有的性能指标。

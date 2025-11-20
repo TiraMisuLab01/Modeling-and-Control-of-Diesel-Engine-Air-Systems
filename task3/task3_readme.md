@@ -1,23 +1,19 @@
 Task 3 Report: Reduced-Order Observer Design for Diesel Engine Control
 ======================================================================
 
-1. Introduction
-
----------------
+## 1. Introduction
 
 In the context of the multivariable control design for the diesel engine air system, the preceding tasks operated under the assumption that the full state vector is accessible for feedback. However, in practical engineering scenarios, measuring all state variables is often unfeasible due to the high cost of sensors or the physical inaccessibility of internal states. Furthermore, as the state variables in this project are derived from system identification, they lack explicit physical meanings, making direct measurement impossible. The project specification for Task 3 addresses this reality by restricting available information to the two system outputs and the control inputs. Consequently, a state observer is required to reconstruct the full state vector to implement the Linear Quadratic Regulator (LQR) designed in Task 2.
 
-> 在柴油发动机空气系统多变量控制设计的背景下，之前的任务是在假设全状态向量可用于反馈的情况下进行的。然而，在实际工程场景中，由于传感器成本高昂或内部状态物理上不可接近，测量所有状态变量往往是不可行的。此外，由于本项目中的状态变量源于系统辨识，它们缺乏明确的物理意义，使得直接测量变得不可能。任务 3 的项目规范通过将可用信息限制为两个系统输出和控制输入来解决这一现实问题。因此，需要一个状态观测器来重构全状态向量，以实现任务 2 中设计的线性二次调节器 (LQR)。
+> 之前的任务1-2是在假设全状态向量可用于反馈的情况下进行的。然而，在实际工程场景中，由于传感器成本高昂或内部状态物理上不可接近，测量所有状态变量往往是不可行的。此外，由于本项目中的状态变量源于系统辨识，它们缺乏明确的物理意义，使得直接测量变得不太可能。任务 3 通过将可用信息限制为两个系统输出和控制输入来模拟这一现实问题。因此，需要一个状态观测器来重构全状态向量，以实现任务 2 中设计的线性二次调节器 (LQR)。
 
-While a full-order observer mimics the dynamics of the entire system to estimate all four state variables, it introduces redundancy because the two measured outputs already provide precise information about linear combinations of the states. Given that the system has four states ($n=4$) and two independent outputs ($m=2$), it is theoretically sufficient and computationally more efficient to estimate only the remaining $n-m=2$ states. Therefore, this report focuses on the design and implementation of a reduced-order observer. The primary objective is to synthesize a reduced-order observer that ensures asymptotic convergence of the estimation error and to investigate the trade-offs between convergence speed and control signal integrity by analyzing different observer pole locations.
-
-> 虽然全维观测器模拟整个系统的动态来估计所有四个状态变量，但它引入了冗余，因为两个测量输出已经提供了关于状态线性组合的精确信息。鉴于该系统有四个状态 ($n=4$) 和两个独立输出 ($m=2$)，理论上只需要估计剩余的 $n-m=2$ 个状态就足够了，且计算效率更高。因此，本报告重点关注降维观测器的设计与实现。主要目标是综合一个能够确保估计误差渐近收敛的降维观测器，并通过分析不同的观测器极点位置，研究收敛速度与控制信号完整性之间的权衡。
-
-2. Tasks Solvement
-
-------------------
+## 2. Tasks Solvement
 
 ### 2.1 Theoretical Framework of Reduced-Order Observer
+
+123
+
+> 虽然全阶观测器可以用来模拟整个系统的动态来估计所有四个状态变量，但它的设计是冗余的。因为两个测量输出已经提供了关于状态线性组合的精确信息。鉴于该系统有四个状态 ($n=4$) 和两个独立输出 ($m=2$)，理论上只需要估计剩余的 $n-m=2$ 个状态就足够了，且计算效率更高。因此，本报告重点关注降维观测器的设计与实现。主要目标是综合一个能够确保估计误差渐近收敛的降维观测器，并通过分析不同的观测器极点位置，研究收敛速度与控制信号完整性之间的权衡。
 
 The design methodology for the reduced-order observer strictly follows the theoretical framework presented in Chapter 11 of the lecture notes. The core concept involves transforming the original state vector $x \in \mathbb{R}^n$ into a new coordinate system that consists of the measurable outputs $y \in \mathbb{R}^m$ and a reduced state vector $\xi \in \mathbb{R}^{n-m}$. This linear transformation is defined by a nonsingular matrix composed of the output matrix $C$ and a transformation matrix $T$ to be designed:
 
@@ -29,27 +25,31 @@ $\dot{\xi} = D\xi + Eu + Gy$
 
 where $D$, $E$, and $G$ are the observer matrices of appropriate dimensions.
 
-> 降维观测器的设计方法严格遵循讲义第 11 章中提出的理论框架。核心概念涉及将原始状态向量 $x \in \mathbb{R}^n$ 变换到一个新的坐标系，该坐标系由可测输出 $y \in \mathbb{R}^m$ 和降维状态向量 $\xi \in \mathbb{R}^{n-m}$ 组成。该线性变换由一个包含输出矩阵 $C$ 和待设计变换矩阵 $T$ 的非奇异矩阵定义。其中 $\xi$ 代表观测器的内部状态。降维观测器的动态由上述微分方程描述，其中 $D$、$E$ 和 $G$ 是相应维度的观测器矩阵。
+> 降维观测器的设计需要将原始状态向量 $x \in \mathbb{R}^n$ 变换到一个新的坐标系，该坐标系由可测输出 $y \in \mathbb{R}^m$ 和降维状态向量 $\xi \in \mathbb{R}^{n-m}$ 组成。该线性变换由一个包含输出矩阵 $C$ 和待设计变换矩阵 $T$ 的非奇异矩阵，其中 $\xi$ 代表观测器的内部状态。降维观测器的动态由以下微分方程描述，其中 $D$、$E$ 和 $G$ 是相应维度的观测器矩阵。
 
 To ensure that the estimated state $\xi$ correctly tracks the transformation $Tx$ and that the estimation error $e(t) = \xi(t) - Tx(t)$ decays to zero asymptotically, the observer matrices must satisfy the specific algebraic constraints derived from the error dynamics equation $\dot{e} = De + (DT - TA + GC)x + (E - TB)u$. These constraints are:
 
 1. Matrix $D$ must be stable, meaning all its eigenvalues must have negative real parts.
 
-2. ![task3_state estimation error norm](E:\桌面文件存放\学习资料\NUS\NUS\NUS%20Courses\ME5401%20Linear%20System\Linear-System-Mini-Project\task3\task3_state%20estimation%20error%20norm.png)The matrix $T$ must satisfy the Sylvester equation: $TA - DT = GC$.
+2. The matrix $T$ must satisfy the Sylvester equation: $TA - DT = GC$.
 
 3. The input matrix $E$ must be matched such that $E = TB$.
 
-> 为了确保估计状态 $\xi$ 正确跟踪变换 $Tx$，并且估计误差 $e(t) = \xi(t) - Tx(t)$ 渐近衰减为零，观测器矩阵必须满足由误差动态方程导出的特定代数约束。这些约束包括：1. 矩阵 $D$ 必须是稳定的，即其所有特征值的实部必须为负。2. 矩阵 $T$ 必须满足 Sylvester 方程：$TA - DT = GC$。3. 输入矩阵 $E$ 必须匹配，使得 $E = TB$。
+> 为了确保估计状态 $\xi$ 正确跟踪变换 $Tx$，并且估计误差 $e(t) = \xi(t) - Tx(t)$ 渐近衰减为零，观测器矩阵必须满足由误差动态方程导出的特定代数约束。这些约束包括：
+> 
+> 1. 矩阵 $D$ 必须是稳定的，即其所有特征值的实部必须为负。
+> 2. 矩阵 $T$ 必须满足 Sylvester 方程：$TA - DT = GC$。
+> 3. 输入矩阵 $E$ 必须匹配，使得 $E = TB$。
 
 Upon successfully estimating $\xi(t)$, the full state estimate $\hat{x}(t)$ is reconstructed by inverting the transformation matrix. This reconstruction combines the noise-free measurement $y(t)$ directly with the dynamic estimate $\xi(t)$, providing a distinct advantage over full-order observers where all states are filtered estimates. The reconstruction equation is given by:
 
-$$\hat{x} = \begin{bmatrix} C \\ T \end{bmatrix}^{-1} \begin{bmatrix} y \\ \xi \end{bmatrix} = M \begin{bmatrix} y \\ \xi \end{bmatrix}$$
+$\hat{x} = \begin{bmatrix} C \\ T \end{bmatrix}^{-1} \begin{bmatrix} y \\ \xi \end{bmatrix} = M \begin{bmatrix} y \\ \xi \end{bmatrix}$
 
 The final control law is then implemented as $u = -K\hat{x}$, utilizing the LQR gain $K$ derived in the previous task.
 
-> 成功估计 $\xi(t)$ 后，通过对变换矩阵求逆来重构全状态估计 $\hat{x}(t)$。这种重构将无噪声测量值 $y(t)$ 与动态估计值 $\xi(t)$ 直接结合，这是相对于全维观测器（其中所有状态都是滤波估计值）的一个显著优势。重构方程如上所示。最终的控制律实现为 $u = -K\hat{x}$，利用了在前一任务中导出的 LQR 增益 $K$。
+> 成功估计 $\xi(t)$ 后，通过对变换矩阵求逆来重构全状态估计 $\hat{x}(t)$。重构方程如Eq.()所示。最终的控制律为 $u = -K\hat{x}$
 
-### 2.2 Implementation and Investigation Strategy
+
 
 The design was implemented in MATLAB using the specific parameters derived from the matriculation number ($a=8, b=4, c=0, d=1$). Based on Task 2 results, the dominant closed-loop pole of the LQR controlled system was identified at $\lambda_{dom} \approx -2.2368$. To comprehensively investigate the impact of observer dynamics on system performance, three distinct design cases were established for the observer matrix $D = \text{diag}(\lambda_{obs1}, \lambda_{obs2})$ based on multipliers of $\lambda_{dom}$:
 
@@ -59,7 +59,7 @@ The design was implemented in MATLAB using the specific parameters derived from 
 
 * **Case 3 (Fast Observer)**: The poles are placed at $15 \times \lambda_{dom}$. This represents an aggressive design intended to achieve near-instantaneous estimation.
 
-> 设计是在 MATLAB 中实现的，使用了从学号导出的特定参数 ($a=8, b=4, c=0, d=1$)。基于任务 2 的结果，LQR 控制系统的主导闭环极点被确定为 $\lambda_{dom} \approx -2.2368$。为了全面研究观测器动态对系统性能的影响，基于 $\lambda_{dom}$ 的倍数，为观测器矩阵 $D$ 建立了三种不同的设计方案：Case 1（慢速观测器）：极点位于 1 倍主导极点处，代表观测器动态与控制器动态一样迟缓的情况。Case 2（推荐观测器）：极点位于 4 倍主导极点处，符合标准工程经验法则（快 3 到 5 倍），以确保估计收敛先于控制动作。Case 3（快速观测器）：极点位于 15 倍主导极点处，代表旨在实现近乎瞬时估计的激进设计。
+> 具体来说，设计是在 MATLAB 中实现的，使用了从学号导出的特定参数 ($a=8, b=4, c=0, d=1$)。基于任务 2 的结果，LQR 控制系统的主导闭环极点被确定为 $\lambda_{dom} \approx -2.2368$。为了全面研究观测器动态对系统性能的影响，基于 $\lambda_{dom}$ 的倍数，为观测器矩阵 $D$ 建立了三种不同的设计方案：Case 1（慢速观测器）：极点位于 1 倍主导极点处，代表观测器动态与控制器动态一样迟缓的情况。Case 2（推荐观测器）：极点位于 4 倍主导极点处，符合标准工程经验法则（快 3 到 5 倍），以确保估计收敛先于控制动作。Case 3（快速观测器）：极点位于 15 倍主导极点处，代表旨在实现近乎瞬时估计的激进设计。
 
 For each case, the transformation matrix $T$ was obtained by solving the Sylvester equation $A^TT^T - T^TD^T = C^TG^T$ using MATLAB's `sylvester` function, with matrix $G$ initially set to ones. The invertibility of the reconstruction matrix was verified for each iteration. The simulation results are presented below to illustrate the performance differences.
 

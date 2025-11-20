@@ -8,6 +8,8 @@
 % 6. Simulates step response and initial condition response.
 
 clear; clc; close all; % Clear workspace, command window, and close all figures
+set(0, 'defaultAxesFontSize', 14); % Affects the scale and labels on the axes
+set(0, 'defaultTextFontSize', 14);  % Affects text such as titles, axis labels, legends, etc.
 
 %% Step 1: System Matrix Definition and Controllability Check
 % --- User-specific parameters ---

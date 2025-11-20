@@ -5,6 +5,8 @@
 % 3. Simulates and analyzes the performance of each design.
 
 clear; clc; close all;
+set(0, 'defaultAxesFontSize', 14); % Affects the scale and labels on the axes
+set(0, 'defaultTextFontSize', 14);  % Affects text such as titles, axis labels, legends, etc.
 
 %% Step 1: System Definition
 % --- User-specific parameters ---
