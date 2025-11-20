@@ -1,10 +1,9 @@
-%% Linear System Mini-project Task 4: Decoupling Control
+%% Linear System Mini-project Task 4: Decoupling Control Analysis
 % Student ID Parameters: a=8, b=4, c=0, d=1
 clear; clc; close all;
 
 %% 1. System Definition (系统定义)
 % Using the matrices provided by the user
-% 使用用户提供的矩阵数值
 A = [-8.0487, -0.0399, -5.0500,  3.5846;
      -4.5740,  3.0012, -4.3662, -1.5183;
       3.7698, 16.1212, -17.0853, 4.4936;
@@ -21,76 +20,65 @@ C = [-3.2988, -2.1861,  0.0370, -0.0109;
 D = zeros(2, 2);
 
 % Initial condition given in the project
-% 项目给定的初始条件
 x0 = [0.5; -0.1; 0.3; -0.8];
 
 %% 2. Check Relative Degree & Decouplability (检查相对阶和解耦性)
-[p, m] = size(C); % p outputs, m inputs (p=2, m=2)
-sigma = zeros(p, 1); % Store relative degree for each output (存储相对阶)
+[p, n] = size(C); % p = outputs, n = states
+[~, m] = size(B); % m = inputs
+
+sigma = zeros(p, 1); % Store relative degree for each output
 
 % Calculating relative degree sigma_i for each row i
-% 计算每一行的相对阶 sigma_i
 for i = 1:p
     c_i = C(i, :);
-    if norm(c_i * B) > 1e-10 % Check if c_i*B is non-zero (检查是否非零)
+    % We check if the row vector c_i * A^k * B is non-zero
+    if norm(c_i * B) > 1e-10 
         sigma(i) = 1;
     elseif norm(c_i * A * B) > 1e-10
         sigma(i) = 2;
     elseif norm(c_i * A^2 * B) > 1e-10
         sigma(i) = 3;
     else
-        sigma(i) = 4; % Should not happen for this valid system
+        sigma(i) = 4; 
     end
 end
 
 fprintf('Relative degrees (相对阶): sigma_1 = %d, sigma_2 = %d\n', sigma(1), sigma(2));
 
 % Constructing the Decoupling Matrix B_star
-% 构建解耦矩阵 B*
 B_star = zeros(p, m);
 for i = 1:p
     B_star(i, :) = C(i, :) * A^(sigma(i)-1) * B;
 end
 
 % Check singularity
-% 检查奇异性
-if det(B_star) == 0
+if abs(det(B_star)) < 1e-10
     error('B* is singular. Decoupling is not possible by static state feedback.');
 else
     fprintf('Det(B*) = %f. System is decouplable.\n', det(B_star));
 end
 
 %% 3. Controller Design (Theorem 2) (控制器设计)
-% We need to choose stable polynomials phi_i(s) for each channel.
-% Stability is required. Roots should be in LHP.
-% 我们需要为每个通道选择稳定的多项式 phi_i(s)。必须保证稳定性，根在左半平面。
-
+% Design stable polynomials phi_i(s) for each channel.
 % Desired poles for decoupling (Expected settling time < 20s)
-% 期望的解耦极点 (期望调节时间 < 20s)
-% Let's choose poles at -2, -3, etc. to be safe and fast enough.
+% 期望的解耦极点。为了保证稳定且快速，选择 -2 和 -3。
 poles_ch1 = [-2];       % For sigma_1 = 1 (Order 1)
 poles_ch2 = [-3];       % For sigma_2 = 1 (Order 1)
-% Note: If sigma was 2, we would need 2 poles, e.g., [-2, -3].
-% Since both sigmas are likely 1 here, we just need 1 pole each.
-% 注意：如果 sigma 是 2，我们需要 2 个极点。这里大概率 sigma 都是 1。
 
 % Define polynomial matrices phi(A)
-% 定义多项式矩阵 phi(A)
-% For sigma=1, phi(s) = s + lambda -> phi(A) = A + lambda*I
-Phi_A_1 = A - poles_ch1(1) * eye(4); % Corresponds to (s - (-2)) = s+2
-Phi_A_2 = A - poles_ch2(1) * eye(4); % Corresponds to (s - (-3)) = s+3
+% phi(s) = s + lambda -> phi(A) = A + lambda*I
+Phi_A_1 = A - poles_ch1(1) * eye(n); 
+Phi_A_2 = A - poles_ch2(1) * eye(n); 
 
 % Construct C_star_star (Matrix containing phi(A))
-% 构建 C** 矩阵
-C_star_star = zeros(p, 4);
+C_star_star = zeros(p, n);
 C_star_star(1, :) = C(1, :) * Phi_A_1;
 C_star_star(2, :) = C(2, :) * Phi_A_2;
 
 % Calculate Gains F and K
-% 计算增益 F 和 K
 inv_B_star = inv(B_star);
-F = inv_B_star;            % Feedforward Gain (前馈增益)
-K = inv_B_star * C_star_star; % Feedback Gain (反馈增益)
+F = inv_B_star;               % Feedforward Gain
+K = inv_B_star * C_star_star; % Feedback Gain
 
 fprintf('\nController Gains:\n');
 disp('F = '); disp(F);
@@ -98,7 +86,6 @@ disp('K = '); disp(K);
 
 %% 4. Simulation & Verification (仿真与验证)
 % Closed-loop system matrices
-% 闭环系统矩阵
 A_cl = A - B*K;
 B_cl = B*F;
 C_cl = C;
@@ -106,30 +93,81 @@ D_cl = zeros(2,2);
 
 sys_cl = ss(A_cl, B_cl, C_cl, D_cl);
 
-% 4.1 Step Response (Verifying Decoupling)
-% 4.1 阶跃响应 (验证解耦)
+% 4.1 Step Response (Verifying Decoupling) - Manual Plotting
+% 4.1 阶跃响应 (手动绘图以自定义标签)
 figure('Name', 'Task 4: Decoupling Step Response');
-step(sys_cl);
-title('Step Response of Decoupled System');
-% The off-diagonal plots (Input 1 -> Output 2, Input 2 -> Output 1) should be zero.
-% 非对角线的图 (输入1->输出2, 输入2->输出1) 应该为零。
+
+% Get step response data: Y is (Time x Outputs x Inputs)
+[Y_step, T_step] = step(sys_cl);
+
+% Subplot 1: Input 1 -> Output 1
+subplot(2, 2, 1);
+plot(T_step, Y_step(:, 1, 1), 'LineWidth', 1.5);
+title('From r_1 to y_1');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+% Subplot 2: Input 2 -> Output 1 (Should be 0)
+subplot(2, 2, 2);
+plot(T_step, Y_step(:, 1, 2), 'LineWidth', 1.5);
+title('From r_2 to y_1 (Decoupling Check)');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+% Subplot 3: Input 1 -> Output 2 (Should be 0)
+subplot(2, 2, 3);
+plot(T_step, Y_step(:, 2, 1), 'LineWidth', 1.5);
+title('From r_1 to y_2 (Decoupling Check)');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+% Subplot 4: Input 2 -> Output 2
+subplot(2, 2, 4);
+plot(T_step, Y_step(:, 2, 2), 'LineWidth', 1.5);
+title('From r_2 to y_2');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
 
 % 4.2 Internal Stability Check (Initial Response)
-% 4.2 内部稳定性检查 (零输入响应)
 figure('Name', 'Task 4: Internal Stability (Initial Response)');
-initial(sys_cl, x0);
-title(['Initial Response (x0 = [', num2str(x0'), '])']);
+[Y_init, T_init, X_init] = initial(sys_cl, x0);
+subplot(2,1,1);
+plot(T_init, Y_init, 'LineWidth', 1.5);
+title('Output Response to Initial Condition (y)');
+legend('y_1', 'y_2');
+xlabel('Time (s)');
+ylabel('Output Amplitude');
 grid on;
-% All states should converge to zero.
-% 所有状态应收敛至零。
 
-%% 5. Stability Analysis (稳定性分析)
+subplot(2,1,2);
+plot(T_init, X_init, 'LineWidth', 1.5);
+title('State Response to Initial Condition (x) - Check for Divergence');
+legend('x_1', 'x_2', 'x_3', 'x_4');
+xlabel('Time (s)');
+ylabel('State Amplitude');
+grid on;
+
+%% 5. Stability & Observability Analysis (稳定性和可观测性分析)
 cl_eigenvalues = eig(A_cl);
 fprintf('\nClosed-loop Eigenvalues (闭环特征值):\n');
 disp(cl_eigenvalues);
 
-if all(real(cl_eigenvalues) < 0)
+% Check observability of the unstable modes
+% 检查不稳定模态的可观测性
+[U, S, V] = svd(obsv(A_cl, C_cl));
+rank_obsv = rank(obsv(A_cl, C_cl));
+fprintf('Rank of Observability Matrix: %d (Full rank is %d)\n', rank_obsv, n);
+
+if all(real(cl_eigenvalues) < -1e-5)
     fprintf('Result: The decoupled system is INTERNALLY STABLE.\n');
 else
-    fprintf('Result: The decoupled system is UNSTABLE (Hidden unstable modes).\n');
+    fprintf('Result: The decoupled system is UNSTABLE.\n');
+    fprintf('Reason: Unstable Pole-Zero Cancellation (Hidden Unstable Modes).\n');
+    unstable_poles = cl_eigenvalues(real(cl_eigenvalues) >= 0);
+    fprintf('Unstable Pole(s): \n');
+    disp(unstable_poles);
 end
