@@ -112,7 +112,17 @@ Finally, the system step response was simulated and analysed to validate the per
 
 > 其次，分别对每个输入通道施加单位阶跃来评估闭环系统的阶跃响应。输出响应也表明性能指标已符合要求，所有输出的稳定时间都远小于5秒，且超调量极小，远低于10%的限制，如下图所示。因此验证了极点配置设计的有效性。
 
-![bd7adb88-bfab-4887-8da4-2bf410061533](file:///C:/Users/16612/Pictures/Typedown/bd7adb88-bfab-4887-8da4-2bf410061533.png)
+![bd7adb88-bfab-4887-8da4-2bf410061533](file:///C:/Users/16612/Pictures/Typedown/bd7adb88-bfab-4887-8da4-2bf410061533.png)In designing the state feedback controller, this project balanced Speed against Cost:
+
+
+
+The system's settling time is inversely proportional to the absolute value of the real part of the main pole. Thus, shifting the pole further into the left-half plane for example, from -0.4 to -1.0, significantly accelerates system convergence and reduces settling time. However, a more aggressive pole requires a larger feedback gain matrix $K$. According to the control law $u = -Kx$, increasing the gain causes the amplitude of the control input signals ($u_1, u_2$) to rise sharply. In this design, the initial control signal peak is approximately 140 as shown in Figure 2-3. If the poles are set too aggressively, the control signals may exceed the physical limits of the VGT and EGR actuators, leading to the failure of linear control.
+
+
+
+> 在设计状态反馈控制器时，本项目在响应速度（Speed）**与**控制代价（Cost）之间进行了权衡：
+> 
+> 系统的调节时间（Settling Time）与主极点实部的绝对值成反比（$t_s \approx 4/|\sigma|$）。将极点进一步移向左半平面（例如从 -0.4 移至 -1.0）虽然能显著加快系统收敛速度，缩短调节时间。然而，更快的极点需要更大的反馈增益矩阵 $K$。根据控制律 $u = -Kx$，增益的增大会导致控制输入信号（$u_1, u_2$）的幅值剧烈增加。在本设计中，初始控制信号峰值约为 140（如 Figure 2-3 所示）。如果极点过于激进，控制信号可能超过 VGT 和 EGR 执行器的物理限制（即发生**执行器饱和**），导致线性控制失效。
 
 ## 3. Discussion and Conclusion
 
