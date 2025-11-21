@@ -4,7 +4,7 @@ clear; clc; close all;
 set(0, 'defaultAxesFontSize', 14); % Affects the scale and labels on the axes
 set(0, 'defaultTextFontSize', 14);  % Affects text such as titles, axis labels, legends, etc.
 
-%% 1. System Definition (系统定义)
+%% 1. System Definition 
 % Using the matrices provided by the user
 A = [-8.0487, -0.0399, -5.0500,  3.5846;
      -4.5740,  3.0012, -4.3662, -1.5183;
