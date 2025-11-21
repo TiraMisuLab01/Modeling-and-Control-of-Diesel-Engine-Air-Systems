@@ -1,6 +1,8 @@
 %% Linear System Mini-project Task 4: Decoupling Control Analysis
 % Student ID Parameters: a=8, b=4, c=0, d=1
 clear; clc; close all;
+set(0, 'defaultAxesFontSize', 14); % Affects the scale and labels on the axes
+set(0, 'defaultTextFontSize', 14);  % Affects text such as titles, axis labels, legends, etc.
 
 %% 1. System Definition (系统定义)
 % Using the matrices provided by the user
