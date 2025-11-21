@@ -1,208 +1,184 @@
-% EE5101/ME5401 Mini-project Task 5: Servo Control Design
-% Multivariable Integral Control with Disturbance Rejection
-% Based on Chapter 9 (Servo Control) & Chapter 11 (State Estimation)
+% EE5101/ME5401 Mini-project Task 5: Servo Control with Reduced-Order Observer
+% Combines Servo Mechanism (Task 5) with Reduced-Order Observer (Task 3)
 
 clear; clc; close all;
+set(0, 'defaultAxesFontSize', 14); % Affects the scale and labels on the axes
+set(0, 'defaultTextFontSize', 14);  % Affects text such as titles, axis labels, legends, etc.
 
-%% 1. Parameter Setup (Replace with your Matriculation Number digits)
-% Example: A0162903M -> a=8, b=4, c=0, d=1
+%% 1. System Parameter Setup
+% Replace with your Matriculation Number digits
 a = 8; b = 4; c = 0; d = 1; 
 
-% Define System Matrices A, B, C based on Mini-project eq(2)
-% Helper calculations
+% Helper calculations for system matrices
 p1 = 2.5010 * (d + 5) / (c + 5);
 p2 = 0.2922 - (a * b) / 500;
 p3 = 0.0165 - (c + d - 5) / (1000 + 20 * a);
 
-A = [-8.0487, -0.0399, -5.0500,  3.5846;
-     -4.5740,  3.0012, -4.3662, -1.5183;
-      3.7698, 16.1212, -17.0853, 4.4936;
-     -9.8978,  8.3742, -4.4331, -4.2878];
+% Plant Matrices
+A = zeros(4, 4);
+A(1,1) = -8.8487 + (a - b) / 5; A(1,2) = -0.0399; A(1,3) = -5.5500 + (c * d + 5) / 10; A(1,4) = 3.5846;
+A(2,1) = -4.5740; A(2,2) = 2.5010 * (d + 5) / (c + 5); A(2,3) = -4.3662; A(2,4) = -1.1183 - (a - c) / 20;
+A(3,1) = 3.7698; A(3,2) = 16.1212 - c / 5; A(3,3) = -18.2103 + (a + d) / (b + 4); A(3,4) = 4.4936;
+A(4,1) = -8.5645 - (a - b) / (c + d + 2); A(4,2) = 8.3742; A(4,3) = -4.4331; A(4,4) = -7.7181 * (c + 5) / (b + 5);
 
-B = [ 0.4564,  0.0319;
-      0.0199, -0.0200;
-      4.4939,  1.7983;
-     -1.4269, -0.2730];
+B = zeros(4, 2);
+B(1,1) = 0.0564 + b / (10 + c); B(1,2) = 0.0319;
+B(2,1) = 0.0165 - (c + d - 5) / (1000 + 20 * a); B(2,2) = -0.02;
+B(3,1) = 4.4939; B(3,2) = 1.5985 * (a + 10) / (b + 12);
+B(4,1) = -1.4269; B(4,2) = -0.2730;
 
-C = [-3.2988, -2.1861,  0.0370, -0.0109;
-      0.2282, -2.1506, -0.0104,  0.0163];
+C = zeros(2, 4);
+C(1,1) = -3.2988; C(1,2) = -2.1932 + (10 * c + d) / (100 + 5 * a); C(1,3) = 0.0370; C(1,4) = -0.0109;
+C(2,1) = 0.2922 - (a * b) / 500; C(2,2) = -2.1506; C(2,3) = -0.0104; C(2,4) = 0.0163;
 
-D = zeros(2, 2);
+[n, m_in] = size(B);
+[m_out, ~] = size(C);
 
-D = zeros(2, 2); % Assuming D is zero matrix
+%% 2. Servo Controller Design (Augmented LQR)
+% Augmented System: z = [x; v], v_dot = y_sp - y
+A_aug = [A, zeros(n, m_out); 
+         -C, zeros(m_out, m_out)];
+B_aug = [B; zeros(m_out, m_in)];
 
-[n_states, n_inputs] = size(B);
-[n_outputs, ~] = size(C);
+% LQR Weights
+Q_aug = diag([1, 1, 1, 1, 1000, 1000]); % Heavy penalty on integral states v
+R_aug = 0.1 * eye(m_in);
 
-%% 2. Design Servo Controller (Augmented System LQR) - Task 5
-% Reference: Chapter 9, Slide 60-62 (Augmented System)
-% Augmented State vector: z = [x; v], where v is integral of error
+% Calculate Gains
+K_aug = lqr(A_aug, B_aug, Q_aug, R_aug);
+K_x = K_aug(:, 1:n);
+K_v = K_aug(:, n+1:end);
 
-% Construct Augmented System Matrices
-% x_dot = A*x + B*u
-% v_dot = r - y = r - C*x = -C*x + r (Reference r is external input)
-% Augmented form: [x_dot; v_dot] = [A 0; -C 0]*[x; v] + [B; 0]*u
+fprintf('Servo Gains Calculated.\n');
 
-A_aug = [A, zeros(n_states, n_outputs); 
-         -C, zeros(n_outputs, n_outputs)];
+%% 3. Reduced-Order Observer Design (Reused from Task 3)
+% Reduced order
+r_order = n - m_out; % 4 - 2 = 2
 
-B_aug = [B; zeros(n_outputs, n_inputs)];
+% Determine dominant pole of the closed-loop plant (A - B*K_x)
+cl_poles_ctrl = eig(A - B*K_x);
+dom_pole_ctrl = max(real(cl_poles_ctrl));
+fprintf('Controller Dominant Pole: %.4f\n', dom_pole_ctrl);
 
-% Check Controllability of Augmented System (Chapter 9, Slide 61)
-Co_aug = ctrb(A_aug, B_aug);
-if rank(Co_aug) < (n_states + n_outputs)
-    error('Augmented system is not controllable!');
+% Observer Design Parameters (Recommended Case: 4x faster)
+obs_poles = [dom_pole_ctrl * 4; dom_pole_ctrl * 4 - 0.5];
+D_obs = diag(obs_poles);
+
+% Solve Sylvester Equation: T*A - D*T = G*C
+G_obs = ones(r_order, m_out); % Initial guess
+T_obs = sylvester(A', -D_obs', C'*G_obs')';
+
+% Check invertibility of [C; T]
+if rcond([C; T_obs]) < 1e-10
+    G_obs = eye(r_order, m_out); % Fallback
+    T_obs = sylvester(A', -D_obs', C'*G_obs')';
 end
 
-% LQR Weights for Augmented System
-% We penalize the integral states (v) heavily to ensure zero steady-state error
-Q_aug = diag([1, 1, 1, 1, 1000, 1000]); % [x1, x2, x3, x4, v1, v2]
-R_aug = 0.1 * eye(n_inputs);           % Penalize control effort
+% Calculate remaining matrices
+M_obs = inv([C; T_obs]); % Reconstruction matrix
+E_obs = T_obs * B;
 
-% Calculate LQR Gain for Augmented System
-K_aug = lqr(A_aug, B_aug, Q_aug, R_aug);
+fprintf('Reduced-Order Observer Designed (Poles: %.2f, %.2f)\n', obs_poles(1), obs_poles(2));
 
-% Split K_aug into Kx (state feedback) and Kv (integral gain)
-K_x = K_aug(:, 1:n_states);
-K_v = K_aug(:, n_states+1:end);
-
-fprintf('Servo Controller Gains:\n');
-disp('K_x:'); disp(K_x);
-disp('K_v:'); disp(K_v);
-
-%% 3. Design Observer (Task 3 Component) - Task 5 Requirement
-% Reference: Chapter 11, Slide 30-33
-% We use the observer to estimate x since we only have output y
-% Observer poles should be faster than controller poles
-
-% Let's use a simple pole placement or LQR for observer
-% Using LQR for observer design (duality) is robust
-Q_obs = 100 * eye(n_states); % Process noise covariance proxy
-R_obs = 1 * eye(n_outputs);  % Measurement noise covariance proxy
-L_t = lqr(A', C', Q_obs, R_obs);
-L = L_t';
-
-fprintf('Observer Gain L:\n');
-disp(L);
-
-%% 4. Simulation with Disturbance
-% Setup Simulation Parameters
-T_final = 40;
+%% 4. Simulation
+T_final = 15;
 dt = 0.01;
 time = 0:dt:T_final;
 steps = length(time);
 
 % Initial Conditions
-x0 = [0.5; -0.1; 0.3; -0.8]; % Given in mini-project
-x_hat0 = [0; 0; 0; 0];       % Initial estimate (usually zero)
-v0 = [0; 0];                 % Initial integral error
+x0 = [0.5; -0.1; 0.3; -0.8];
+xi0 = [0; 0]; % Observer internal state initial condition
+v0 = [0; 0];  % Integral state initial condition
 
-% Set Point
+% Set Points & Disturbance
 y_sp = [0.4; 0.8];
-
-% Disturbance Parameters (Step disturbance at t = 10s)
 t_dist = 10;
-w_dist = [0.3; 0.2]; % Input disturbance
+w_dist = [0.3; 0.2];
 
-% Initialize Arrays for Storage
-X = zeros(n_states, steps);
-X_hat = zeros(n_states, steps);
-Y = zeros(n_outputs, steps);
-U = zeros(n_inputs, steps);
-V = zeros(n_outputs, steps); % Integral state
+% Storage
+X = zeros(n, steps); X(:,1) = x0;
+Xi = zeros(r_order, steps); Xi(:,1) = xi0; % Reduced state
+X_hat = zeros(n, steps); 
+V = zeros(m_out, steps); V(:,1) = v0;
+Y = zeros(m_out, steps);
+U = zeros(m_in, steps);
 
-X(:,1) = x0;
-X_hat(:,1) = x_hat0;
-V(:,1) = v0;
+% Initial Reconstruction
+y_init = C * x0;
+X_hat(:,1) = M_obs * [y_init; xi0];
 
-% Simulation Loop (Euler Integration)
 for k = 1:steps-1
     % 1. Measurement
-    y_meas = C * X(:,k); % Assuming perfect measurement for now
+    y_meas = C * X(:,k);
     Y(:,k) = y_meas;
     
-    % 2. Calculate Control Input (using Estimated State x_hat and Integral State v)
-    % u = -Kx*x_hat - Kv*v
-    u_control = -K_x * X_hat(:,k) - K_v * V(:,k);
-    U(:,k) = u_control;
+    % 2. Reconstruction of Full State
+    % x_hat = M * [y; xi]
+    x_hat_k = M_obs * [y_meas; Xi(:,k)];
+    X_hat(:,k) = x_hat_k;
     
-    % 3. Determine Disturbance
+    % 3. Control Law (Servo + Observer)
+    % u = -Kx * x_hat - Kv * v
+    u_ctrl = -K_x * x_hat_k - K_v * V(:,k);
+    U(:,k) = u_ctrl;
+    
+    % 4. Disturbance
     if time(k) >= t_dist
         w = w_dist;
     else
-        w = zeros(n_inputs, 1);
+        w = zeros(m_in, 1);
     end
+    u_plant = u_ctrl + w;
     
-    % Total input to plant
-    u_plant = u_control + w;
+    % 5. Dynamics Integration (Euler)
+    % Plant: dx = Ax + B(u+w)
+    dX = A * X(:,k) + B * u_plant;
+    X(:,k+1) = X(:,k) + dX * dt;
     
-    % 4. Update Plant State (True System)
-    % dx/dt = Ax + B(u + w)
-    dx = A * X(:,k) + B * u_plant;
-    X(:,k+1) = X(:,k) + dx * dt;
+    % Observer: dxi = D*xi + E*u + G*y (Note: u is u_ctrl, not u_plant)
+    dXi = D_obs * Xi(:,k) + E_obs * u_ctrl + G_obs * y_meas;
+    Xi(:,k+1) = Xi(:,k) + dXi * dt;
     
-    % 5. Update Observer State (Estimated System)
-    % d(x_hat)/dt = A*x_hat + B*u_control + L(y - C*x_hat)
-    % Note: Observer uses u_control (known), not u_plant (unknown disturbance)
-    y_hat = C * X_hat(:,k);
-    dx_hat = A * X_hat(:,k) + B * u_control + L * (y_meas - y_hat);
-    X_hat(:,k+1) = X_hat(:,k) + dx_hat * dt;
-    
-    % 6. Update Integral State
-    % dv/dt = y_sp - y
-    % (Note: Slide 60 defines e = r - y, so we integrate error)
-    error_signal = y_meas - y_sp; % Wait, slide 60 says e = r-y, v_dot = e. 
-                                  % If u = -Kx - Kv*v, then v should accumulate error.
-                                  % Let's stick to convention: v_dot = y - y_sp or y_sp - y?
-                                  % If v_dot = y - y_sp, then u = -Kv*v is negative feedback.
-                                  % If v_dot = y_sp - y, then u = -Kv*v needs sign check.
-                                  % Standard augmented system: [x_dot; v_dot] = [A 0; -C 0]... + [0; I]r
-                                  % implies v_dot = r - Cx = error.
-                                  % So v accumulates (r - y).
-    
-    dv = y_sp - y_meas; % r - y
-    V(:,k+1) = V(:,k) + dv * dt;
+    % Integrator: dv = y_sp - y
+    dV = y_sp - y_meas;
+    V(:,k+1) = V(:,k) + dV * dt;
 end
 
-% Fill last values
+% Final step values
 Y(:,end) = C * X(:,end);
+X_hat(:,end) = M_obs * [Y(:,end); Xi(:,end)];
 U(:,end) = -K_x * X_hat(:,end) - K_v * V(:,end);
 
-%% 5. Plotting Results
-figure('Name', 'Task 5: Servo Control Results', 'Color', 'w');
+%% 5. Plotting
+figure('Name', 'Task 5 (Reduced Observer) Results', 'Color', 'w');
 
-% Plot Outputs vs Setpoints
+% Outputs
 subplot(3,1,1);
 plot(time, Y(1,:), 'b', 'LineWidth', 1.5); hold on;
 plot(time, Y(2,:), 'r', 'LineWidth', 1.5);
-yline(y_sp(1), 'b--', 'LineWidth', 1.2);
-yline(y_sp(2), 'r--', 'LineWidth', 1.2);
-xline(t_dist, 'k:', 'LineWidth', 1);
-title('System Outputs y_1, y_2 vs Setpoints');
-legend('y_1 (AFR)', 'y_2 (EGR)', 'SP_1', 'SP_2', 'Disturbance Onset');
+yline(y_sp(1), 'b--', 'LineWidth', 1);
+yline(y_sp(2), 'r--', 'LineWidth', 1);
+xline(t_dist, 'k:', 'LineWidth', 1.2);
+title('System Outputs vs Setpoints (Reduced Observer)');
+legend('y_1', 'y_2', 'SP_1', 'SP_2', 'Disturbance');
 grid on;
-ylabel('Outputs');
 
-% Plot Control Inputs
+% Inputs
 subplot(3,1,2);
 plot(time, U(1,:), 'b', 'LineWidth', 1.5); hold on;
 plot(time, U(2,:), 'r', 'LineWidth', 1.5);
-xline(t_dist, 'k:', 'LineWidth', 1);
-title('Control Inputs u_1, u_2');
-legend('u_1 (VGT)', 'u_2 (EGR Valve)');
+xline(t_dist, 'k:', 'LineWidth', 1.2);
+title('Control Inputs');
+legend('u_1', 'u_2');
 grid on;
-ylabel('Inputs');
 
-% Plot Estimation Error (Optional but good for verification)
+% Estimation Error
 subplot(3,1,3);
-est_error = X - X_hat;
-plot(time, vecnorm(est_error), 'k', 'LineWidth', 1.5);
-title('Norm of State Estimation Error', 'Interpreter', 'none');
-grid on;
-xlabel('Time (s)');
-ylabel('Error Norm');
+err_norm = vecnorm(X - X_hat);
+plot(time, err_norm, 'k', 'LineWidth', 1.5);
+title('State Estimation Error Norm $||x - \hat{x}||$','Interpreter', 'latex');
+grid on; xlabel('Time (s)');
 
-% Display Performance Metrics
-fprintf('\nSteady State Values (Last 1 sec average):\n');
-fprintf('y1: %.4f (Target: %.4f)\n', mean(Y(1, end-100:end)), y_sp(1));
-fprintf('y2: %.4f (Target: %.4f)\n', mean(Y(2, end-100:end)), y_sp(2));
+fprintf('\nFinal Steady State Error (y - y_sp):\n');
+disp(Y(:,end) - y_sp');
