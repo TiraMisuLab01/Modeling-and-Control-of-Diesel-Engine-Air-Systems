@@ -15,39 +15,39 @@ Although a full-order observer can be used to simulate the entire system dynamic
 
 > 虽然全阶观测器可以用来模拟整个系统的动态来估计所有四个状态变量，但它的设计是冗余的。因为两个测量输出已经提供了关于状态线性组合的精确信息。鉴于该系统有四个状态 ($n=4$) 和两个独立输出 ($m=2$)，理论上只需要估计剩余的 $n-m=2$ 个状态就足够了，且计算效率更高。因此，本报告重点关注降维观测器的设计与实现。主要目标是综合一个能够确保估计误差渐近收敛的降维观测器，并通过分析不同的观测器极点位置，研究收敛速度与控制信号完整性之间的权衡。
 
-~~The design methodology for the reduced-order observer strictly follows the theoretical framework presented in Chapter 11 of the lecture notes. The core concept involves transforming the original state vector $x \in \mathbb{R}^n$ into a new coordinate system that consists of the measurable outputs $y \in \mathbb{R}^m$ and a reduced state vector $\xi \in \mathbb{R}^{n-m}$. This linear transformation is defined by a nonsingular matrix composed of the output matrix $C$ and a transformation matrix $T$ to be designed:~~
+The design methodology for the reduced-order observer strictly follows the theoretical framework presented in Chapter 11 of the lecture notes. The core concept involves transforming the original state vector $x \in \mathbb{R}^n$ into a new coordinate system that consists of the measurable outputs $y \in \mathbb{R}^m$ and a reduced state vector $\xi \in \mathbb{R}^{n-m}$. This linear transformation is defined by a nonsingular matrix composed of the output matrix $C$ and a transformation matrix $T$ to be designed:
 
 ~~$\begin{bmatrix} y \\ \xi \end{bmatrix} = \begin{bmatrix} C \\ T \end{bmatrix} x$~~
 
-~~where $\xi$ represents the internal states of the observer. The dynamics of the reduced-order observer are governed by the following differential equation:~~
+where $\xi$ represents the internal states of the observer. The dynamics of the reduced-order observer are governed by the following differential equation:
 
-~~$\dot{\xi} = D\xi + Eu + Gy$~~
+$\dot{\xi} = D\xi + Eu + Gy$
 
-~~where $D$, $E$, and $G$ are the observer matrices of appropriate dimensions.~~
+where $D$, $E$, and $G$ are the observer matrices of appropriate dimensions.
 
 > ~~降维观测器的设计需要将原始状态向量 $x \in \mathbb{R}^n$ 变换到一个新的坐标系，该坐标系由可测输出 $y \in \mathbb{R}^m$ 和降维状态向量 $\xi \in \mathbb{R}^{n-m}$ 组成。该线性变换由一个包含输出矩阵 $C$ 和待设计变换矩阵 $T$ 的非奇异矩阵，其中 $\xi$ 代表观测器的内部状态。降维观测器的动态由以下微分方程描述，其中 $D$、$E$ 和 $G$ 是相应维度的观测器矩阵。~~
 
-~~To ensure that the estimated state $\xi$ correctly tracks the transformation $Tx$ and that the estimation error $e(t) = \xi(t) - Tx(t)$ decays to zero asymptotically, the observer matrices must satisfy the specific algebraic constraints derived from the error dynamics equation $\dot{e} = De + (DT - TA + GC)x + (E - TB)u$. These constraints are:~~
+To ensure that the estimated state $\xi$ correctly tracks the transformation $Tx$ and that the estimation error $e(t) = \xi(t) - Tx(t)$ decays to zero asymptotically, the observer matrices must satisfy the specific algebraic constraints derived from the error dynamics equation $\dot{e} = De + (DT - TA + GC)x + (E - TB)u$. These constraints are:
 
-1. ~~Matrix $D$ must be stable, meaning all its eigenvalues must have negative real parts.~~
+1. Matrix $D$ must be stable, meaning all its eigenvalues must have negative real parts.
 
-2. ~~The matrix $T$ must satisfy the Sylvester equation: $TA - DT = GC$.~~
+2. The matrix $T$ must satisfy the Sylvester equation: $TA - DT = GC$.
 
-3. ~~The input matrix $E$ must be matched such that $E = TB$.~~
+3. The input matrix $E$ must be matched such that $E = TB$.
 
-> ~~为了确保估计状态 $\xi$ 正确跟踪变换 $Tx$，并且估计误差 $e(t) = \xi(t) - Tx(t)$ 渐近衰减为零，观测器矩阵必须满足由误差动态方程导出的特定代数约束。这些约束包括：~~
+> 为了确保估计状态 $\xi$ 正确跟踪变换 $Tx$，并且估计误差 $e(t) = \xi(t) - Tx(t)$ 渐近衰减为零，观测器矩阵必须满足由误差动态方程导出的特定代数约束。这些约束包括：
 > 
-> 1. ~~矩阵 $D$ 必须是稳定的，即其所有特征值的实部必须为负。~~
-> 2. ~~矩阵 $T$ 必须满足 Sylvester 方程：$TA - DT = GC$。~~
-> 3. ~~输入矩阵 $E$ 必须匹配，使得 $E = TB$。~~
+> 1. 矩阵 $D$ 必须是稳定的，即其所有特征值的实部必须为负。
+> 2. 矩阵 $T$ 必须满足 Sylvester 方程：$TA - DT = GC$。
+> 3. 输入矩阵 $E$ 必须匹配，使得 $E = TB$。
 
-~~Upon successfully estimating $\xi(t)$, the full state estimate $\hat{x}(t)$ is reconstructed by inverting the transformation matrix. This reconstruction combines the noise-free measurement $y(t)$ directly with the dynamic estimate $\xi(t)$, providing a distinct advantage over full-order observers where all states are filtered estimates. The reconstruction equation is given by:~~
+Upon successfully estimating $\xi(t)$, the full state estimate $\hat{x}(t)$ is reconstructed by inverting the transformation matrix. This reconstruction combines the noise-free measurement $y(t)$ directly with the dynamic estimate $\xi(t)$, providing a distinct advantage over full-order observers where all states are filtered estimates. The reconstruction equation is given by:
 
 ~~$\hat{x} = \begin{bmatrix} C \\ T \end{bmatrix}^{-1} \begin{bmatrix} y \\ \xi \end{bmatrix} = M \begin{bmatrix} y \\ \xi \end{bmatrix}$~~
 
-~~The final control law is then implemented as $u = -K\hat{x}$, utilizing the LQR gain $K$ derived in the previous task.~~
+The final control law is then implemented as $u = -K\hat{x}$, utilizing the LQR gain $K$ derived in the previous task.
 
-> ~~成功估计 $\xi(t)$ 后，通过对变换矩阵求逆来重构全状态估计 $\hat{x}(t)$。重构方程如Eq.()所示。最终的控制律为 $u ~~= -K\hat{x}$
+> 成功估计 $\xi(t)$ 后，通过对变换矩阵求逆来重构全状态估计 $\hat{x}(t)$。重构方程如Eq.()所示。最终的控制律为 $u ~~= -K\hat{x}$
 
 
 
@@ -71,11 +71,11 @@ For each case, the Sylvester equation $TA - DT = GC$ is solved using MATLAB's `s
 
 > 对于每种情况，使用 MATLAB 的 `sylvester` 函数求解 Sylvester 方程 $TA - DT = GC$ 来获得变换矩阵 $T$，矩阵 $G$ 最初设为全 1 矩阵。每次迭代都验证了重构矩阵的可逆性。仿真结果如图2-8,2-9,2-10所示。
 
-Figure 1: State Estimation Error Norm Analysis
+Figure 2-8: State Estimation Error Norm Analysis
 
-Figure 2: State Tracking Performance
+Figure 2-9: State Tracking Performance
 
-Figure 3: Control Effort and Peaking Phenomenon
+Figure 2-10: Control Effort and Peaking Phenomenon
 
 Figure 2-8 depicts the temporal evolution of the estimation error norm $\|x(t) - \hat{x}(t)\|$. It can be observed that the **slow observer (red line)** exhibits a gradual decay rate, requiring approximately 2 seconds to stabilise. In contrast, the fast observer (blue line) converges within 0.2 seconds but exhibits a large initial spike with an amplitude approaching 9. The recommended observer (green line) displays a balanced convergence curve without excessive initial overshoot.
 
@@ -85,7 +85,7 @@ Figure 2-8 depicts the temporal evolution of the estimation error norm $\|x(t) -
 
 Figure 2-9 tracks the performance of representative state variables ($x_2$) under three cases. The solid black line represents the actual state trajectory, while the dashed coloured lines denote the estimated values. Results indicate that for the **slow observer**, the estimated state (red dashed line) slightly behind the actual state during the transient phase. The **recommended observer** and **fast observer** provide tighter tracking, with the fast observer's estimates becoming virtually indistinguishable from the true state after the initial moment.
 
-> ** 图 2-9 追踪了三种情况下代表性状态变量 ($x_2$) 的跟踪性能，实心黑线代表实际状态轨迹，而虚线彩色线代表估计值。结果表明，对于**慢速观测器**，估计状态（红色虚线）在瞬态阶段略微滞后于实际状态。**推荐观测器**和**快速观测器**提供了更紧密的跟踪，快速观测器的估计值在初始时刻后几乎与真实状态无法区分。<img title="" src="file:///E:/桌面文件存放/学习资料/NUS/NUS/NUS%20Courses/ME5401%20Linear%20System/Linear-System-Mini-Project/task3/task3_state%20tracking%20performance%20conparison.png" alt="task3_state tracking performance conparison" data-align="center" style="zoom:33%;">
+> 图 2-9 追踪了三种情况下代表性状态变量 ($x_2$) 的跟踪性能，实心黑线代表实际状态轨迹，而虚线彩色线代表估计值。结果表明，对于**慢速观测器**，估计状态（红色虚线）在瞬态阶段略微滞后于实际状态。**推荐观测器**和**快速观测器**提供了更紧密的跟踪，快速观测器的估计值在初始时刻后几乎与真实状态无法区分。<img title="" src="file:///E:/桌面文件存放/学习资料/NUS/NUS/NUS%20Courses/ME5401%20Linear%20System/Linear-System-Mini-Project/task3/task3_state%20tracking%20performance%20conparison.png" alt="task3_state tracking performance conparison" data-align="center" style="zoom:33%;">
 
 
 

@@ -2,15 +2,7 @@
 
 ## 1. Introduction
 
-~~This report details the design of a state feedback controller for a diesel engine air system, as outlined in Task 1 of the ME5401/EE5101 Linear Systems mini-project. The primary objective of modern engine control is to meet increasingly stringent government emission regulations for pollutants such as oxides of nitrogen (NOx) and particulate matter (PM), while maintaining high performance and fuel efficiency. This is achieved by precisely managing the engine's air-to-fuel ratio (AFR) and the rate of exhaust gas recirculation (EGR). The control of this system is challenging due to the significant cross-coupling between the actuators, namely the Variable Geometry Turbocharger (VGT) and the EGR valve. Adjusting one actuator invariably affects the operating point and dynamic response of the other, making it a classic Multiple-Input Multiple-Output (MIMO) control problem.~~
-
-> ~~本报告详细阐述了为柴油机空气系统设计状态反馈控制器的过程，该任务是ME5401/EE5101线性系统小型项目中的任务一。现代发动机控制的首要目标是在满足日益严格的政府对氮氧化物（NOx）和颗粒物（PM）等污染物排放法规的同时，保持高性能和燃油效率。这需要通过精确管理发动机的空燃比（AFR）和废气再循环率（EGR）来实现。该系统的控制之所以具有挑战性，是因为执行器——即可变几何涡轮（VGT）和EGR阀——之间存在显著的交叉耦合。调节一个执行器总是会影响另一个执行器的操作点和动态响应，这使其成为一个典型的多输入多输出（MIMO）控制问题。~~
-
     This project provides a fourth-order linear state-space model obtained through systematic identification. The MIMO model incorporates two inputs: u1: blade position of Variable Geometry Turbine (VGT) ; u2: valve position of Exhaust Gas Recirculation (EGR) . Correspondingly, there are two outputs: y1: In-cylinder Air-Fuel Ratio (AFR); y2: Intake Manifold EGR Percentage.
-
-    This model characterises the dynamic behaviour of the equipment near a specific operating point, with the state-space equations defined as follows:
-
-_Translated with [DeepL.com](https://www.deepl.com/?utm_campaign=product&utm_source=web_translator&utm_medium=web&utm_content=copy_free_translation) (free version)_
 
 > 该项目提供了一个通过系统辨识获得的四阶线性状态空间模型。MIMO模型包含两个输入：u1: VGT（可变几何涡轮）的叶片位置；u2: EGR（废气再循环）的阀门位置。同时输出也有两项：y1: 缸内空燃比 (AFR)；y2: 进气歧管EGR百分比。该模型描述了设备在特定工作点附近的动态特性，状态空间方程如下：
 
@@ -24,7 +16,7 @@ $$
 
 Task 1 specifically addresses tuning issues which objective is to design a state feedback controller of the form `u = -Kx` that stabilises and controls the system. It needs to ensure an ideal transient response when recovering from a non-zero initial state. Specifically, for a step input, the closed-loop system's overshoot M_p should be less than 10%, and the 2% settling time t_s should be less than 20 seconds.
 
-> 任务一专门解决调节问题。其目标是设计一个形式为 `u = -Kx` 的状态反馈控制器，该控制器能够使系统稳定可控，并确保系统从一个非零初始状态恢复时具有理想的瞬态响应。具体来说，对于阶跃输入，闭环系统的超调量 M_p 小于10%，且2%稳定时间 t_s 小于20秒。
+> 任务一专门解决调节问题。其目标是设计一个形式为 `u = -Kx` 的状态反馈控制器，该控制器能够使系统稳定可控，并确保系统从一个非零初始状态恢复时具有理想的瞬态响应。具体来说，对于阶跃输入，闭环系统的超调量 $M_p$ 小于10%，且2%稳定时间 $t_s$ 小于20秒。
 
 ## 2. Task Solvement
 
@@ -86,7 +78,7 @@ Subsequently, the Ackermann formula was implemented using MATLAB's `acker` funct
 > 
 >  $\dot{x} = Ax + (Bq)v$
 > 
-> 我们选择权重向量为<mark> `q = [1; 1]` ？？？最后一次课（chap 10?11?summary?）表示不要选择[1;1]?</mark>以确保两个物理执行器（VGT和EGR）都被控制器所用。所得到的SISO系统`(A, Bq)`的可控性进行了了检验和确认。
+> 我们选择权重向量为 `q = [1; 1]` 以确保两个物理执行器（VGT和EGR）都被控制器所用。所得到的SISO系统`(A, Bq)`的可控性进行了了检验和确认。
 > 
 > ![补图](file:///C:/Users/16612/Pictures/Typedown/3b638d1c-61cd-4dec-a580-5dc6e4ee4eb6.png)
 > 
@@ -128,6 +120,6 @@ The system's settling time is inversely proportional to the absolute value of th
 
 This task successfully demonstrated the application of the pole placement method to a practical MIMO control problem. Through a systematic design process, a state feedback controller was synthesized that not only stabilized the system but also precisely shaped its dynamic response to meet stringent performance criteria. The key takeaway is the direct relationship between the location of closed-loop poles and the system's transient behavior, and how state feedback provides a powerful tool to manipulate these poles.
 
-> 任务1成功地在实际MIMO控制问题中应用极点配置方法，通过系统矩阵的确定与可控性检验、确定期望的闭环极点位置、计算反馈增益矩阵 K以及仿真与性能分析的系统化设计流程，项目成功设计了一个状态反馈控制器。处理MIMO控制器设计非唯一性问题时，单位秩方法确实是一个有效策略。~~设置一个权重向量`q`来简化MIMO问题并仍然达到预期的性能。~~`q`的选择直接影响最终增益矩阵`K`的结构，从而影响系统的输入。
+> 任务1成功地在实际MIMO控制问题中应用极点配置方法，通过系统矩阵的确定与可控性检验、确定期望的闭环极点位置、计算反馈增益矩阵 K以及仿真与性能分析的系统化设计流程，项目成功设计了一个状态反馈控制器。处理MIMO控制器设计非唯一性问题时，单位秩方法确实是一个有效策略。q`的选择直接影响最终增益矩阵`K`的结构，从而影响系统的输入。
 > 
 > 关键的收获是理解了闭环极点位置与系统瞬态行为之间的直接关系，以及状态反馈作为一种强大的工具来操控这些极点的能力。

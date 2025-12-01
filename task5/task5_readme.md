@@ -61,5 +61,3 @@ The simulation results, as shown in the Figure2-12, demonstrate the effectivenes
 In Task 5, this project successfully applied servo control methods to MIMO systems with incomplete state information. By augmenting the state space with an error integrator, to ensure the system satisfies the internal model principle, which is crucial for suppressing constant disturbances with zero steady-state error and tracking step references. Simulations confirmed that integral control is the key to achieving steady-state accuracy. The use of the observer enabled the implementation of a state feedback law utilising only available outputs, demonstrating the practicality of the separation principle.
 
 > 在任务5中，本项目成功地将伺服控制方法应用于具有不完整状态信息的 MIMO 系统。通过用误差积分器增广状态空间，我们确保了系统满足内部模型原理，这对于以零稳态误差抑制恒定扰动和跟踪阶跃参考至关重要 。仿真证实了积分控制是实现稳态精度的“法宝”。观测器的使用使我们能够仅利用可用的输出实现状态反馈律，证明了分离原理的实用性。
-
-

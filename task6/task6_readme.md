@@ -1,9 +1,4 @@
-Here is the `task6_readme.md` file content, written in the requested academic format with Chinese translations.
-
-* * *
-
-Task 6: State Regulation and Optimization Report
-================================================
+# Task 6: State Regulation and Optimization Report
 
 ## Introduction
 
@@ -12,8 +7,6 @@ Task 6's primary objective extends beyond the study of control outputs to encomp
 > 任务6的主要目标不仅仅是研究控制输出，而且要研究系统四个内部状态变量的直接调节。具体而言，需要将状态向量 $x$ 维持在特定的稳态设定点 $x_{sp} = [0, 0.5, -0.4, 0.3]^T$。因此，该任务需要进行严格的可行性分析，以确定目标状态在物理上是否可达。如果确认由于系统的物理结构导致无法精确达到目标后，该问题将转化为一个优化问题，寻找最优的可达稳态 $x_s^*$，使其最小化加权二次代价函数 $J(x_s)$来权衡不同状态之间的误差。
 
 ## Tasks Solvement
-
-
 
 First, a fundamental analysis of the system's equilibrium point is conducted. For a linear time-invariant system described by $\dot{x} = Ax + Bu$, steady state implies that the rate of change of the state vector is zero. Therefore, to maintain the system at the target setpoint $x_{sp}$, a constant control input $u_{ss}$ must exist that satisfies the equilibrium Equation（）
 
@@ -57,7 +50,7 @@ The simulation results are shown in Figures 2-13, 2-14. Starting from the initia
 > 
 > 其中 $u_s^*$ 提供维持最优稳态所需的能量，反馈增益 $K$ 用于稳定误差动态。增益矩阵 $K$ 使用 LQR 方法计算，以确保鲁棒的瞬态性能。
 > 
-> 仿真结果如图2-13，2-14所示，从初始条件 $x_0$ 开始，状态轨迹平滑收敛并精确稳定在 $x_s^*$，控制输入稳定在 $u_s^*$。~~这证实了静态优化与动态反馈控制的结合，有效地将系统调节到了物理约束下的最佳工作点。~~
+> 仿真结果如图2-13，2-14所示，从初始条件 $x_0$ 开始，状态轨迹平滑收敛并精确稳定在 $x_s^*$，控制输入稳定在 $u_s^*$。~
 
 ## Discussion and Conclusion
 
