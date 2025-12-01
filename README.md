@@ -95,7 +95,7 @@ Assume that you can measure all the four state variables, design a state feedbac
 > 
 > 2. <mark>`Fr` 项的作用是“跟踪设定值”（Tracking/Servo Control）：</mark>
 >    
->    * 第7章（Pole Placement）的Page 2，公式(2)明确给出了更一般的状态反馈控制律：u = -Kx + Fr。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/5b5fb582-3c0f-4db9-892f-dfd8386b8ece.png" alt="5b5fb582-3c0f-4db9-892f-dfd8386b8ece" data-align="center" style="zoom:80%;">
+>    * 第7章（Pole Placement）的Page 2，公式(2)明确给出了更一般的状态反馈控制律：u = -Kx + Fr。<img title="" src="./images/5b5fb582-3c0f-4db9-892f-dfd8386b8ece.png" alt="loading-ag-1845" data-align="center" style="zoom:80%;">
 >    * 这里的 r 是参考输入或设定值，F 是前馈增益。Fr 项的作用是确保当 r 不为零时，系统的输出能够准确地跟踪这个设定值，并且通常能消除稳态误差。
 >    * 在任务5中，您会看到我们确实需要处理一个非零的设定点 ($y_{sp} = [0.4, 0.8]^T$)，并且需要抑制扰动。那将是一个典型的伺服控制问题，届时 Fr
 >      项（或其等效的积分控制结构）就会变得非常重要。
@@ -119,20 +119,20 @@ Assume that you can measure all the four state variables, design a state feedbac
 
 1. 确定系统矩阵 (A, B, C)：
    
-   * 思路：首先，根据您提供的学号参数 a=8, b=4, c=0, d=1，将其代入项目文件（Page 3，公式2）中给出的 A, B, C 矩阵的表达式。<img src="file:///C:/Users/16612/Pictures/Typedown/88439fcc-dad9-4669-b30d-36067e2e8ad9.png" title="" alt="88439fcc-dad9-4669-b30d-36067e2e8ad9" data-align="center">
+   * 思路：首先，根据您提供的学号参数 a=8, b=4, c=0, d=1，将其代入项目文件（Page 3，公式2）中给出的 A, B, C 矩阵的表达式。<img title="" src="./images/88439fcc-dad9-4669-b30d-36067e2e8ad9.png" alt="loading-ag-1847" data-align="center">
    * 推理：这是所有后续计算的基础。精确的数值矩阵是进行控制系统设计的第一步。
-   * 程序运行结果：<img src="file:///C:/Users/16612/Pictures/Typedown/c9eb78b9-a368-41a8-86a3-47bec904a97b.png" title="" alt="c9eb78b9-a368-41a8-86a3-47bec904a97b" data-align="center">
+   * 程序运行结果：<img title="" src="./images/c9eb78b9-a368-41a8-86a3-47bec904a97b.png" alt="loading-ag-1847" data-align="center">
 
 2. 检验系统的可控性：
    
    * 思路：构建系统的可控性矩阵 W_c，并计算其秩。
-   * 推理：根据第7章（Page 21，定理1 / Slide Page），系统能够通过状态反馈任意配置极点的充要条件是系统是可控的。如果系统不可控，那么我们将无法将所有极点移动到我们期望的位置，任务目标就无法实现。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/313ac84e-18a9-4f46-bc3e-d90af025357b.png" alt="313ac84e-18a9-4f46-bc3e-d90af025357b" data-align="center" style="zoom:67%;">
+   * 推理：根据第7章（Page 21，定理1 / Slide Page），系统能够通过状态反馈任意配置极点的充要条件是系统是可控的。如果系统不可控，那么我们将无法将所有极点移动到我们期望的位置，任务目标就无法实现。<img title="" src="./images/c9eb78b9-a368-41a8-86a3-47bec904a97b.png" alt="loading-ag-1849" data-align="center" style="zoom:67%;">
    * 方法：
      * 系统是4阶的（n=4），有2个输入（m=2）。
      * 可控性矩阵 W_c 的定义为 $W_c = [B, AB, A^2B, A^3B]$。这将是一个 n x (n*m)，即 4 x 8 的矩阵。
      * 计算 W_c 的秩。如果 $rank(W_c) = n$（即 $rank(W_c) = 4$），则系统可控。
    
-   > <img title="" src="file:///C:/Users/16612/Pictures/Typedown/3d02153e-f025-4463-aba5-ff8396706429.png" alt="3d02153e-f025-4463-aba5-ff8396706429" data-align="left">
+   > <img title="" src="./images/3d02153e-f025-4463-aba5-ff8396706429.png" alt="loading-ag-1851" data-align="left">
    
    ### **步骤二：确定期望的闭环极点位置**
 
@@ -140,7 +140,7 @@ Assume that you can measure all the four state variables, design a state feedbac
    
    * 思路：利用二阶系统近似公式，将超调量和稳定时间的要求转换为S平面上极点必须满足的区域。
    
-   * 推理：第7章（Page 11）提供了这些公式，它们是连接时域性能和频域（极点位置）特性的桥梁。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/9d58ee28-f75e-4a09-9635-4fcf3ed58279.png" alt="9d58ee28-f75e-4a09-9635-4fcf3ed58279" data-align="center" style="zoom:67%;"><img title="" src="file:///C:/Users/16612/Pictures/Typedown/4418a3d3-517d-4fa8-afd6-d08607db1146.png" alt="4418a3d3-517d-4fa8-afd6-d08607db1146" data-align="center" style="zoom:67%;">
+   * 推理：第7章（Page 11）提供了这些公式，它们是连接时域性能和频域（极点位置）特性的桥梁。<img title="" src="./images/9d58ee28-f75e-4a09-9635-4fcf3ed58279.png" alt="9d58ee28-f75e-4a09-9635-4fcf3ed58279" data-align="center" style="zoom:67%;"><img title="" src="./images/4418a3d3-517d-4fa8-afd6-d08607db1146.png" alt="loading-ag-1848" data-align="center" style="zoom:67%;">
    
    * 方法：
      
@@ -149,7 +149,7 @@ Assume that you can measure all the four state variables, design a state feedbac
      * 2%稳定时间 `t_s < 20秒`：根据公式 t_s ≈ 4/(ζωn)，解出 ζωn（极点实部）需要满足 ζωn >0.2。这在S平面上对应一条垂直线，所有极点必须位于这条线的左侧。
      
      * 代码结果：
-       ![078268c4-b4fc-498e-bc65-8821612036f7](file:///C:/Users/16612/Pictures/Typedown/078268c4-b4fc-498e-bc65-8821612036f7.png)
+       ![loading-ag-1850](./images/078268c4-b4fc-498e-bc65-8821612036f7.png)
    
    >  <mark>实数极点与复数极点的区别</mark>
    > 
@@ -196,7 +196,7 @@ Assume that you can measure all the four state variables, design a state feedbac
    
    * 思路：选择一个 m x 1（即 2 x 1）的非零向量 q，使得 (A, Bq) 对是可控的。
    
-   * 推理：第7章 §7.4.1 Unity Rank K (Page 50-56) 介绍了单位秩方法。它通过将多输入系统 (A, B) 转换为一个等效的单输入系统 (A,Bq)，从而可以使用单输入系统的极点配置方法来求解。选择 q 的目的是确保这个等效的单输入系统仍然可控。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/cf115148-6132-4633-a797-3e0f008f69a1.png" alt="cf115148-6132-4633-a797-3e0f008f69a1" data-align="center" style="zoom:80%;"><img src="file:///C:/Users/16612/Pictures/Typedown/4ec5ecad-389f-4e8e-82f2-8e9b5d496511.png" title="" alt="4ec5ecad-389f-4e8e-82f2-8e9b5d496511" style="zoom:80%;">
+   * 推理：第7章 §7.4.1 Unity Rank K (Page 50-56) 介绍了单位秩方法。它通过将多输入系统 (A, B) 转换为一个等效的单输入系统 (A,Bq)，从而可以使用单输入系统的极点配置方法来求解。选择 q 的目的是确保这个等效的单输入系统仍然可控。<img title="" src="./images/cf115148-6132-4633-a797-3e0f008f69a1.png" alt="cf115148-6132-4633-a797-3e0f008f69a1" data-align="center" style="zoom:80%;"><img title="" src="./images/4ec5ecad-389f-4e8e-82f2-8e9b5d496511.png" alt="loading-ag-1855" style="zoom:80%;">
    
    * 方法：可以尝试简单的 q 向量，例如<mark> [1; 0] 或 [0; 1] 或 [1; 1]</mark>。对于每个 q，都需要检验 (A, Bq) 的可控性，即计算 $rank([Bq, A*Bq, A^2*Bq,
       A^3*Bq])$ 是否为4。
@@ -273,9 +273,9 @@ Assume that you can measure all the four state variables, design a state feedbac
 7. 构建最终的MIMO反馈增益矩阵 `K`：
    
    * 思路：将 q 和 k_siso 组合，得到 m x n（即 2 x 4）的 K 矩阵。
-   * 推理：根据第7章（Page 56，公式12），最终的反馈增益矩阵 K 为 K = q * k_siso。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/3c5c2e37-e795-46f0-83e7-185fd98e6d50.png" alt="3c5c2e37-e795-46f0-83e7-185fd98e6d50" data-align="center" style="zoom:80%;">
+   * 推理：根据第7章（Page 56，公式12），最终的反馈增益矩阵 K 为 K = q * k_siso。<img title="" src="./images/3c5c2e37-e795-46f0-83e7-185fd98e6d50.png" alt="loading-ag-1844" data-align="center" style="zoom:80%;">
    
-   <img src="file:///C:/Users/16612/Pictures/Typedown/bb719cee-d1ee-440d-8c2c-293e3187d655.png" title="" alt="bb719cee-d1ee-440d-8c2c-293e3187d655" data-align="center">
+   <img title="" src="./images/bb719cee-d1ee-440d-8c2c-293e3187d655.png" alt="loading-ag-1846" data-align="center">
    
    ### **步骤四：仿真与性能分析**
 
@@ -360,12 +360,11 @@ Assume that you can measure all the four state variables, design a state feedbac
 
 任务原文要求：Assume that you can measure all the four state variables, design a state feedback controller using the LQR method, simulate the designed system, check the step responses and show all the state responses to non-zero initial state with zero external inputs. Discuss effects of weightings Q and R on system performance, and also monitor control signal size. In this step, both the disturbance and set point can be assumed to be zero. (15 points)
 
-* ~~**要求**: 同样假设状态全可知，使用**LQR方法**设计控制器，并讨论权重矩阵 `Q` 和 `R` 对性能的影响。~~
 1. **任务目标与LQR思想**
    任务二要求我们使用LQR方法设计一个状态反馈控制器 u = -Kx，并重点讨论权重矩阵 Q 和 R 对系统性能的影响。
    与任务一中我们“强行”指定极点位置不同，LQR是一种更“优雅”的最优控制方法。它的核心思想是在系统性能（响应速度、误差大小）和控制成本（能量消耗
    ）这对固有矛盾之间，寻找一个最佳的权衡（best trade-off） (参考 Chapter 8, Slide 4)。
-   这种权衡是通过最小化一个二次型代价函数 (Cost Function) 来数学化实现的 (参考 Chapter 8, Slide 6, Eq. 2):<img title="" src="file:///C:/Users/16612/Pictures/Typedown/88fcab75-224b-4417-bed3-df78e6010d6b.png" alt="88fcab75-224b-4417-bed3-df78e6010d6b" style="zoom:33%;" data-align="center">
+   这种权衡是通过最小化一个二次型代价函数 (Cost Function) 来数学化实现的 (参考 Chapter 8, Slide 6, Eq. 2):<img title="" src="./images/88fcab75-224b-4417-bed3-df78e6010d6b.png" alt="loading-ag-1848" style="zoom:33%;" data-align="center">
    
    $$
    J = \frac{1}{2}\int_{0}^{\infty} (x^T Q x + u^T R u) dt
@@ -375,7 +374,7 @@ Assume that you can measure all the four state variables, design a state feedbac
    * $u^T R u$ (控制输入惩罚项): 衡量了使用控制输入 u 的代价。
    
    LQR的目标就是找到一个反馈增益 K，使得在这个 K 的作用下，总代价 J 达到最小值。
-   ![0feff843-847b-4dfe-84f3-b776f9cd1c07](file:///C:/Users/16612/Pictures/Typedown/0feff843-847b-4dfe-84f3-b776f9cd1c07.png)
+   ![loading-ag-1850](./images/0feff843-847b-4dfe-84f3-b776f9cd1c07.png)
 
 2. **如何完成任务二：详细设计流程**
    
@@ -386,20 +385,20 @@ Assume that you can measure all the four state variables, design a state feedbac
    * 理论支撑:
      
      1. 代数黎卡提方程 (Algebraic Riccati Equation, ARE): 这是LQR问题的核心。我们需要求解一个唯一的、对称半正定的矩阵 P，它满足以下方程 (参考
-         Chapter 8, Slide 38):<img title="" src="file:///C:/Users/16612/Pictures/Typedown/62b81296-1da2-4b85-a140-4a7b2d8b0452.png" alt="62b81296-1da2-4b85-a140-4a7b2d8b0452" style="zoom:50%;" data-align="center">
+         Chapter 8, Slide 38):<img title="" src="./images/62b81296-1da2-4b85-a140-4a7b2d8b0452.png" alt="loading-ag-1852" style="zoom:50%;" data-align="center">
         
         $$
         A^TP + PA - PBR^{-1}B^TP + Q = 0
         $$
      
-     2. 最优反馈增益 (Optimal Feedback Gain): 一旦解出矩阵 P，最优的反馈增益 K 就可以直接计算得出 (参考 Chapter 8, Slide 40):<img title="" src="file:///C:/Users/16612/Pictures/Typedown/24703c64-9cfd-4962-afb9-f721330991cc.png" alt="24703c64-9cfd-4962-afb9-f721330991cc" style="zoom:50%;" data-align="center">
+     2. 最优反馈增益 (Optimal Feedback Gain): 一旦解出矩阵 P，最优的反馈增益 K 就可以直接计算得出 (参考 Chapter 8, Slide 40):<img title="" src="./images/24703c64-9cfd-4962-afb9-f721330991cc.png" alt="loading-ag-1854" style="zoom:50%;" data-align="center">
         
         $$
         K = R^{-1}B^TP
         $$
    
    * 方法: 在MATLAB中，我们无需手动求解复杂的ARE方程。lqr 函数 K = lqr(A, B, Q, R) 封装了整个求解过程，是完成此步骤的直接工具。
-     ARE方程求解：![d6feb25d-bd8f-428f-b12c-f2a1ded2ecbc](file:///C:/Users/16612/Pictures/Typedown/d6feb25d-bd8f-428f-b12c-f2a1ded2ecbc.png)
+     ARE方程求解：![loading-ag-1856](./images/d6feb25d-bd8f-428f-b12c-f2a1ded2ecbc.png)
    
    ### 步骤 2.2：选择权重矩阵 Q 和 R (设计的艺术与核心)
    
@@ -407,13 +406,13 @@ Assume that you can measure all the four state variables, design a state feedbac
    
    * 思路: 通过试凑法（trial-and-error）和对 Q、R 物理意义的理解，迭代调整这两个矩阵，直到闭环系统的性能满足要求。
    
-   * 理论指导 (参考 Chapter 8, Slide 46-47):<img title="" src="file:///C:/Users/16612/Pictures/Typedown/e0e30a71-df9f-4f96-9c81-f4635b281ef8.png" alt="e0e30a71-df9f-4f96-9c81-f4635b281ef8" data-align="center" style="zoom:33%;"><img title="" src="file:///C:/Users/16612/Pictures/Typedown/2781b275-b42e-4798-ae2f-2364ce25f69d.png" alt="2781b275-b42e-4798-ae2f-2364ce25f69d" style="zoom:33%;" data-align="center">
+   * 理论指导 (参考 Chapter 8, Slide 46-47):<img title="" src="./images/e0e30a71-df9f-4f96-9c81-f4635b281ef8.png" alt="e0e30a71-df9f-4f96-9c81-f4635b281ef8" data-align="center" style="zoom:33%;"><img title="" src="./images/2781b275-b42e-4798-ae2f-2364ce25f69d.png" alt="loading-ag-1861" style="zoom:33%;" data-align="center">
      
      * `Q` 和 `R` 的结构: 通常选择为对角矩阵，这样可以独立地对每个状态变量的误差和每个控制输入的大小进行加权。
        * Q = diag([q1, q2, q3, q4])
-       * R = diag([r1, r2])<img title="" src="file:///C:/Users/16612/Pictures/Typedown/7cc58358-d2b7-48e1-a154-39160808b9fc.png" alt="7cc58358-d2b7-48e1-a154-39160808b9fc" data-align="center" style="zoom:33%;">
+       * R = diag([r1, r2])<img title="" src="./images/7cc58358-d2b7-48e1-a154-39160808b9fc.png" alt="loading-ag-1863" data-align="center" style="zoom:33%;">
      * `Q` 和 `R` 的性质: Q 必须是半正定矩阵 (Q >= 0)，R 必须是正定矩阵 (R > 0)，以保证代价函数有意义且控制信号有界 (参考 Chapter 8, Slide 7,
-       21, 23)。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/ac097ab0-d2e9-4b9a-a664-4cf3a71489e9.png" alt="ac097ab0-d2e9-4b9a-a664-4cf3a71489e9" data-align="center" style="zoom:33%;">
+       21, 23)。<img title="" src="./images/ac097ab0-d2e9-4b9a-a664-4cf3a71489e9.png" alt="loading-ag-1865" data-align="center" style="zoom:33%;">
    
    * 迭代调整与讨论的策略:
      
@@ -450,7 +449,7 @@ Assume that you can measure all the four state variables, design a state feedbac
      >      `y`。我们希望输出 y（即AFR和EGR率）尽快回到零，所以我们把对 y 的惩罚作为代价函数的一部分。这是一种非常常见且直观的LQR权重选择方法。
      > 
      > 4. R = eye(2) 是什么意思？
-     >    ![7829a28a-70c2-473f-a18a-daeef9416591](file:///C:/Users/16612/Pictures/Typedown/7829a28a-70c2-473f-a18a-daeef9416591.png)
+     >    ![loading-ag-1867](./images/7829a28a-70c2-473f-a18a-daeef9416591.png)
      
      1. 分析与调整 (讨论的核心内容):
         * 场景一：响应太慢 (稳定时间不满足 < 20s)。
@@ -495,7 +494,7 @@ Assume that you can measure all the four state variables, design a state feedbac
 
 * 利用已知的 $m$ 个输出变量，只对剩下的 $n-m$ 个状态进行估计。
 
-* 减少计算负担，避免对已知信息的重复（且可能引入误差的）估计。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/8a7e4fe9-cfe1-44d0-b0e2-0e578635d732.png" alt="8a7e4fe9-cfe1-44d0-b0e2-0e578635d732" style="zoom:50%;" data-align="left">
+* 减少计算负担，避免对已知信息的重复（且可能引入误差的）估计。<img title="" src="./images/8a7e4fe9-cfe1-44d0-b0e2-0e578635d732.png" alt="loading-ag-1869" style="zoom:50%;" data-align="left">
 
 ### 2.2 构造原理 (Slide 53)
 
@@ -505,13 +504,13 @@ Assume that you can measure all the four state variables, design a state feedbac
 
 $\dot{\xi} = D\xi + Eu + Gy$
 
-其中 $\xi \in \mathbb{R}^2$ 是观测器状态，不是物理状态。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/e88f5205-c15c-4372-a5c2-c16d5f16a4db.png" alt="e88f5205-c15c-4372-a5c2-c16d5f16a4db" data-align="center" style="zoom:50%;">
+其中 $\xi \in \mathbb{R}^2$ 是观测器状态，不是物理状态。<img title="" src="./images/e88f5205-c15c-4372-a5c2-c16d5f16a4db.png" alt="loading-ag-1871" data-align="center" style="zoom:50%;">
 
 ### 2.3 误差动态与设计方程 (Slide 55-56)
 
 定义估计误差 $e = \xi - Tx$。
 
-误差动态为 $\dot{e} = De + (DT - TA + GC)x + (E - TB)u$。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/6bac99f7-6ebd-42b0-ab83-dd0b00b6e79b.png" alt="6bac99f7-6ebd-42b0-ab83-dd0b00b6e79b" style="zoom:50%;" data-align="center">
+误差动态为 $\dot{e} = De + (DT - TA + GC)x + (E - TB)u$。<img title="" src="./images/6bac99f7-6ebd-42b0-ab83-dd0b00b6e79b.png" alt="loading-ag-1873" style="zoom:50%;" data-align="center">
 
 为了使误差 $e(t) \to 0$，必须满足以下条件：
 
@@ -519,7 +518,7 @@ $\dot{\xi} = D\xi + Eu + Gy$
 
 2. **设计方程 (Sylvester Equation)**: $TA - DT = GC$。
 
-3. **输入匹配**: $E = TB$。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/6a730f6b-48f7-46cf-a7e9-9dd7273b6099.png" alt="6a730f6b-48f7-46cf-a7e9-9dd7273b6099" data-align="center" style="zoom:50%;">
+3. **输入匹配**: $E = TB$。<img title="" src="./images/6a730f6b-48f7-46cf-a7e9-9dd7273b6099.png" alt="loading-ag-1875" data-align="center" style="zoom:50%;">
 
 ### 2.4 状态重构 (Slide 50, 56)
 
@@ -529,7 +528,7 @@ $\begin{bmatrix} y \\ \xi \end{bmatrix} = \begin{bmatrix} C \\ T \end{bmatrix} x
 
 关键约束: 矩阵 $\begin{bmatrix} C \\ T \end{bmatrix}$ 必须是可逆的（非奇异）。
 
-<img title="" src="file:///C:/Users/16612/Pictures/Typedown/1beb0fb2-9616-42db-adb3-4e38e2ba2f1d.png" alt="1beb0fb2-9616-42db-adb3-4e38e2ba2f1d" data-align="inline" style="zoom:50%;"><img title="" src="file:///C:/Users/16612/Pictures/Typedown/57e84f54-66d5-4587-bd0f-97469be279d3.png" alt="57e84f54-66d5-4587-bd0f-97469be279d3" style="zoom:50%;">
+<img title="" src="./images/1beb0fb2-9616-42db-adb3-4e38e2ba2f1d.png" alt="1beb0fb2-9616-42db-adb3-4e38e2ba2f1d" data-align="inline" style="zoom:50%;"><img title="" src="./images/57e84f54-66d5-4587-bd0f-97469be279d3.png" alt="loading-ag-1880" style="zoom:50%;">
 
 ## 3. 执行步骤指南 (Step-by-Step)
 
@@ -659,7 +658,7 @@ $\begin{bmatrix} y \\ \xi \end{bmatrix} = \begin{bmatrix} C \\ T \end{bmatrix} x
 
 * **课件索引:** `Chapter10_Slide.pdf`, **Page 29-33**。
 
-* <img title="" src="file:///C:/Users/16612/Pictures/Typedown/dc7a04ee-7724-4df7-926f-9c4d2cc5b8a3.png" alt="dc7a04ee-7724-4df7-926f-9c4d2cc5b8a3" style="zoom:50%;"><img src="file:///C:/Users/16612/Pictures/Typedown/d17c56b2-91bc-4df4-a1a0-b49b06c17e51.png" title="" alt="d17c56b2-91bc-4df4-a1a0-b49b06c17e51" style="zoom:33%;"><img title="" src="file:///C:/Users/16612/Pictures/Typedown/77cbce43-dabf-407b-b1e3-4ba3ee64c347.png" alt="77cbce43-dabf-407b-b1e3-4ba3ee64c347" style="zoom:50%;"><img src="file:///C:/Users/16612/Pictures/Typedown/18b7e912-fd76-42c9-bb3f-bfe232f8d65f.png" title="" alt="18b7e912-fd76-42c9-bb3f-bfe232f8d65f" style="zoom:33%;">
+* <img title="" src="./images/dc7a04ee-7724-4df7-926f-9c4d2cc5b8a3.png" alt="dc7a04ee-7724-4df7-926f-9c4d2cc5b8a3" style="zoom:50%;"><img title="" src="./images/d17c56b2-91bc-4df4-a1a0-b49b06c17e51.png" alt="d17c56b2-91bc-4df4-a1a0-b49b06c17e51" style="zoom:33%;"><img title="" src="./images/77cbce43-dabf-407b-b1e3-4ba3ee64c347.png" alt="77cbce43-dabf-407b-b1e3-4ba3ee64c347" style="zoom:50%;"><img title="" src="./images/18b7e912-fd76-42c9-bb3f-bfe232f8d65f.png" alt="loading-ag-1891" style="zoom:33%;">
 
 ### 2.2 解耦矩阵 $B^*$ (Decoupling Matrix)
 
@@ -668,7 +667,7 @@ $\begin{bmatrix} y \\ \xi \end{bmatrix} = \begin{bmatrix} C \\ T \end{bmatrix} x
 
 * **解耦条件:** 系统可解耦的充要条件是 $B^*$ **非奇异 (Non-singular)**，即 $\det(B^*) \neq 0$。
 
-* **课件索引:** `Chapter10_Slide.pdf`, **Page 36-37 (Theorem 1)**。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/fc429c9d-def5-439d-935f-b7dd0649655d.png" alt="fc429c9d-def5-439d-935f-b7dd0649655d" data-align="center">
+* **课件索引:** `Chapter10_Slide.pdf`, **Page 36-37 (Theorem 1)**。<img title="" src="./images/fc429c9d-def5-439d-935f-b7dd0649655d.png" alt="loading-ag-1893" data-align="center">
 
 ### 2.3 带稳定性的解耦控制 (Theorem 2: Decoupling with Stability) - **核心算法**
 
@@ -699,7 +698,7 @@ $\begin{bmatrix} y \\ \xi \end{bmatrix} = \begin{bmatrix} C \\ T \end{bmatrix} x
 
 * **课件索引:** `Chapter10_Slide.pdf`, **Page 45 (Theorem 2)**, **Page 46-47 (Example 1 Continued)**。
 
-* <img title="" src="file:///C:/Users/16612/Pictures/Typedown/f7b11c7b-2e95-4117-bf5a-9d56f4c85d1e.png" alt="f7b11c7b-2e95-4117-bf5a-9d56f4c85d1e" style="zoom:50%;"><img title="" src="file:///C:/Users/16612/Pictures/Typedown/147c17df-cd2d-4c02-89d8-958c1ad32c8e.png" alt="147c17df-cd2d-4c02-89d8-958c1ad32c8e" style="zoom:50%;">
+* <img title="" src="./images/f7b11c7b-2e95-4117-bf5a-9d56f4c85d1e.png" alt="f7b11c7b-2e95-4117-bf5a-9d56f4c85d1e" style="zoom:50%;"><img title="" src="./images/147c17df-cd2d-4c02-89d8-958c1ad32c8e.png" alt="loading-ag-1898" style="zoom:50%;">
 
 * * *
 
@@ -831,7 +830,7 @@ Task 5 的核心解决方案是 **多变量积分控制（Multivariable Integral
 
 * **课件索引**：
   
-  * **Slide 5 & 34**：展示了在 SISO 系统中引入积分器（$1/s$）可以实现常数输入的零稳态误差。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/499515ba-ac85-46fb-9c5f-6b685f5dd5a2.png" alt="499515ba-ac85-46fb-9c5f-6b685f5dd5a2" data-align="center" style="zoom:50%;"><img title="" src="file:///C:/Users/16612/Pictures/Typedown/527eca73-f3f3-4f54-a074-50b2c99e6b97.png" alt="527eca73-f3f3-4f54-a074-50b2c99e6b97" data-align="center" style="zoom:50%;">
+  * **Slide 5 & 34**：展示了在 SISO 系统中引入积分器（$1/s$）可以实现常数输入的零稳态误差。<img title="" src="./images/499515ba-ac85-46fb-9c5f-6b685f5dd5a2.png" alt="499515ba-ac85-46fb-9c5f-6b685f5dd5a2" data-align="center" style="zoom:50%;"><img title="" src="./images/527eca73-f3f3-4f54-a074-50b2c99e6b97.png" alt="loading-ag-1903" data-align="center" style="zoom:50%;">
   
   * **Slide 64**：强调了积分器是消除稳态误差的“魔法武器”（Magic weapon）。
 
@@ -847,10 +846,10 @@ Task 5 的核心解决方案是 **多变量积分控制（Multivariable Integral
 
 * **课件索引**：
   
-  * **Slide 58-59**：引出多变量积分控制的需求。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/6b643d1c-f219-4ae1-9ed0-83feb052eb06.png" alt="6b643d1c-f219-4ae1-9ed0-83feb052eb06" data-align="center" style="zoom:50%;"><img title="" src="file:///C:/Users/16612/Pictures/Typedown/22f9d8fa-8455-437d-89a3-4635807cd257.png" alt="22f9d8fa-8455-437d-89a3-4635807cd257" data-align="center" style="zoom:50%;">
+  * **Slide 58-59**：引出多变量积分控制的需求。<img title="" src="./images/6b643d1c-f219-4ae1-9ed0-83feb052eb06.png" alt="6b643d1c-f219-4ae1-9ed0-83feb052eb06" data-align="center" style="zoom:50%;"><img title="" src="./images/22f9d8fa-8455-437d-89a3-4635807cd257.png" alt="loading-ag-1908" data-align="center" style="zoom:50%;">
   
   * **Slide 60：关键页**。给出了误差定义 $\dot{v} = r - y$ 和增广系统的状态方程矩阵形式：
-    $\begin{bmatrix} \dot{x} \\ \dot{v} \end{bmatrix} = \begin{bmatrix} A & 0 \\ -C & 0 \end{bmatrix} \begin{bmatrix} x \\ v \end{bmatrix} + \begin{bmatrix} B \\ 0 \end{bmatrix} u + \begin{bmatrix} 0 \\ I \end{bmatrix} r$<img title="" src="file:///C:/Users/16612/Pictures/Typedown/c511977d-c2a1-42f1-8ab7-8dde73a2fb1b.png" alt="c511977d-c2a1-42f1-8ab7-8dde73a2fb1b" data-align="center" style="zoom:50%;">
+    $\begin{bmatrix} \dot{x} \\ \dot{v} \end{bmatrix} = \begin{bmatrix} A & 0 \\ -C & 0 \end{bmatrix} \begin{bmatrix} x \\ v \end{bmatrix} + \begin{bmatrix} B \\ 0 \end{bmatrix} u + \begin{bmatrix} 0 \\ I \end{bmatrix} r$<img title="" src="./images/c511977d-c2a1-42f1-8ab7-8dde73a2fb1b.png" alt="loading-ag-1910" data-align="center" style="zoom:50%;">
 
 #### 3. 增广系统的可控性
 
@@ -858,7 +857,7 @@ Task 5 的核心解决方案是 **多变量积分控制（Multivariable Integral
 
 * **课件索引**：
   
-  * **Slide 61**：给出了增广系统可控的充要条件，即 rank check。![6b01b354-edbf-4cef-85af-c4e8e186b7af](file:///C:/Users/16612/Pictures/Typedown/6b01b354-edbf-4cef-85af-c4e8e186b7af.png)
+  * **Slide 61**：给出了增广系统可控的充要条件，即 rank check。![loading-ag-1912](./images/6b01b354-edbf-4cef-85af-c4e8e186b7af.png)
 
 #### 4. 控制律设计 (State Feedback with Integral)
 
@@ -868,9 +867,9 @@ Task 5 的核心解决方案是 **多变量积分控制（Multivariable Integral
 
 * **课件索引**：
   
-  * **Slide 62**：明确给出了带有积分控制的状态反馈公式。<img src="file:///C:/Users/16612/Pictures/Typedown/dd609e72-0376-4af5-a2bd-2a5e93dd4388.png" title="" alt="dd609e72-0376-4af5-a2bd-2a5e93dd4388" style="zoom:50%;">
+  * **Slide 62**：明确给出了带有积分控制的状态反馈公式。<img title="" src="./images/dd609e72-0376-4af5-a2bd-2a5e93dd4388.png" alt="loading-ag-1914" style="zoom:50%;">
   
-  * **Slide 67**：**关键页**。展示了如何对增广系统应用 **LQR** 方法来计算增益矩阵 $K$（这结合了 Chapter 8 的知识，非常适合 Task 5）。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/6b0f7f9d-6a49-423c-88b2-afbf743a0aeb.png" alt="6b0f7f9d-6a49-423c-88b2-afbf743a0aeb" style="zoom:50%;" data-align="center">
+  * **Slide 67**：**关键页**。展示了如何对增广系统应用 **LQR** 方法来计算增益矩阵 $K$（这结合了 Chapter 8 的知识，非常适合 Task 5）。<img title="" src="./images/6b0f7f9d-6a49-423c-88b2-afbf743a0aeb.png" alt="loading-ag-1916" style="zoom:50%;" data-align="center">
 
 #### 5. 结合观测器 (Observer Integration)
 
@@ -878,7 +877,9 @@ Task 5 的核心解决方案是 **多变量积分控制（Multivariable Integral
 
 * **课件索引**：
   
-  * **Chapter 9 Slide 65**：展示了 MIMO 积分控制系统的框图（Figure 6），但这页假设知道 $x$。<img src="file:///C:/Users/16612/Pictures/Typedown/0e389b1d-04c0-458b-bd20-ceb9764de764.png" title="" alt="0e389b1d-04c0-458b-bd20-ceb9764de764" style="zoom:50%;">
+  * **Chapter 9 Slide 65**：展示了 MIMO 积分控制系统的框图（Figure 6），但这页假设知道 $x$。
+  
+  * <img title="" src="./images/0e389b1d-04c0-458b-bd20-ceb9764de764.png" alt="loading-ag-1918" style="zoom:50%;">
   
   * **Chapter 11 Slide 41 (Figure 5)**：虽然不在 Chapter 9，但这是 Task 5 实现的关键架构——**Plant + Observer + Integral Controller**。<img title="" src="file:///C:/Users/16612/Pictures/Typedown/55f0281a-8ad9-471c-804e-ffdc2e4f30a3.png" alt="55f0281a-8ad9-471c-804e-ffdc2e4f30a3" style="zoom:50%;" data-align="center">
 
